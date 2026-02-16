@@ -102,9 +102,11 @@ Result:
 
 ## Technical Details
 
-- Angular 17 with Standalone Components
+- Angular 21 with Zoneless Change Detection
+- Signal-based reactive state management
+- Standalone Components with modern architecture
 - Recursive component structure mirrors XML hierarchy
-- Real-time XML generation
+- Real-time XML generation via computed signals
 - All sections use `<section>` tags with optional `label` attributes
 
 ## Export

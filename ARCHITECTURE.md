@@ -1,6 +1,6 @@
 # Architecture
 
-This project uses Angular 17 with signals for reactive state management and is split into modular components.
+This project uses Angular 21 with zoneless change detection, signals for reactive state management, and is split into modular components.
 
 ## Component Structure
 
@@ -75,13 +75,15 @@ src/app/
     └── text-sectioner.component.css
 ```
 
-## Signal-Based Change Detection
+## Zoneless Change Detection
 
-While Angular 17 doesn't have public zoneless APIs, using signals still provides benefits:
+Angular 21 introduces official zoneless change detection support:
+- No Zone.js dependency required
+- Signals drive all reactive updates automatically
 - Computed values (like XML output) update automatically
 - More explicit data flow
-- Foundation for future zoneless migration
 - Better performance through fine-grained reactivity
+- Smaller bundle size without Zone.js
 
 ## Future Improvements
 

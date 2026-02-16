@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TextNode } from '../../services/text-section.service';
@@ -16,18 +16,18 @@ export class TextNodeComponent {
   siblings = input.required<TextNode[]>();
   level = input.required<number>();
 
-  keydown = output<{
+  @Output() keydown = new EventEmitter<{
     event: KeyboardEvent;
     node: TextNode;
     parent: TextNode | null;
     siblings: TextNode[];
   }>();
 
-  textChange = output<TextNode>();
-  labelChange = output<TextNode>();
-  deleteNode = output<{ node: TextNode; siblings: TextNode[] }>();
-  startEditLabel = output<TextNode>();
-  finishEditLabel = output<TextNode>();
+  @Output() textChange = new EventEmitter<TextNode>();
+  @Output() labelChange = new EventEmitter<TextNode>();
+  @Output() deleteNode = new EventEmitter<{ node: TextNode; siblings: TextNode[] }>();
+  @Output() startEditLabel = new EventEmitter<TextNode>();
+  @Output() finishEditLabel = new EventEmitter<TextNode>();
 
   onTextareaKeydown(event: KeyboardEvent) {
     this.keydown.emit({
@@ -38,8 +38,16 @@ export class TextNodeComponent {
     });
   }
 
-  onTextInput() {
+  onTextInputChange(event: Event) {
+    const target = event.target as HTMLTextAreaElement;
+    this.node().text = target.value;
     this.textChange.emit(this.node());
+  }
+
+  onLabelInputChange(event: Event) {
+    const target = event.target as HTMLInputElement;
+    this.node().label = target.value;
+    this.labelChange.emit(this.node());
   }
 
   onStartEditingLabel(event: Event) {

@@ -1,11 +1,10 @@
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
 import { TextSectionerComponent } from './text-sectioner/text-sectioner.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, TextSectionerComponent],
+  imports: [TextSectionerComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })

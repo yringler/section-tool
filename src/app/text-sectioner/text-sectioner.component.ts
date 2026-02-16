@@ -23,6 +23,7 @@ export class TextSectionerComponent {
     parent: TextNode | null;
     siblings: TextNode[];
   }) {
+    // payload IS the object we emitted
     const { event, node, parent, siblings } = payload;
     const textarea = event.target as HTMLTextAreaElement;
     const cursorPos = textarea.selectionStart;

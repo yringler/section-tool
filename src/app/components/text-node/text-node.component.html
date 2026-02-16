@@ -6,7 +6,8 @@
       <input
         *ngIf="node().isEditing"
         type="text"
-        [(ngModel)]="node().label"
+        [value]="node().label || ''"
+        (input)="onLabelInputChange($event)"
         (keydown)="onLabelKeydown($event)"
         (blur)="onLabelBlur()"
         [attr.data-node-id]="node().id"
@@ -25,9 +26,9 @@
   </div>
 
   <textarea
-    [(ngModel)]="node().text"
+    [value]="node().text"
+    (input)="onTextInputChange($event)"
     (keydown)="onTextareaKeydown($event)"
-    (input)="onTextInput()"
     class="node-textarea"
     [placeholder]="'Enter text... (Level ' + (level() + 1) + ')'"
     dir="rtl"
