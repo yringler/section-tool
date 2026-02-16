@@ -16,7 +16,10 @@
             "index": "src/index.html",
             "browser": "src/main.ts",
             "tsConfig": "tsconfig.app.json",
-            "styles": ["src/styles.css"],
+            "styles": [
+              "src/styles.css",
+              "@awesome.me/webawesome/dist/styles/webawesome.css"
+            ],
             "scripts": []
           },
           "configurations": {

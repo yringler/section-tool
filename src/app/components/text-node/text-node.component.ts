@@ -1,5 +1,6 @@
-import { Component, input, output } from '@angular/core';
+import { Component, input, output, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { TextNode } from '../../models/text-node.model';
+import '@awesome.me/webawesome/dist/components/textarea/textarea.js';
 
 export interface NodeKeydownEvent {
   nodeId: string;
@@ -27,6 +28,7 @@ export interface NodeDeleteEvent {
   selector: 'app-text-node',
   standalone: true,
   imports: [],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './text-node.component.html',
   styleUrl: './text-node.component.css',
 })
@@ -39,23 +41,28 @@ export class TextNodeComponent {
   labelChange = output<NodeLabelChangeEvent>();
   deleteNode = output<NodeDeleteEvent>();
 
-  onKeydown(event: KeyboardEvent, textarea: HTMLTextAreaElement, contentIndex: number): void {
+  onKeydown(event: KeyboardEvent, waTextarea: any, contentIndex: number): void {
     if (
       event.key === 'Enter' ||
       event.key === 'Tab'
     ) {
       event.preventDefault();
+      // Access internal textarea from Web Awesome component
+      const internalTextarea = waTextarea.shadowRoot?.querySelector('textarea');
+      const cursorPos = internalTextarea?.selectionStart ?? 0;
+
       this.nodeKeydown.emit({
         nodeId: this.node().id,
         contentIndex,
         event,
-        cursorPos: textarea.selectionStart,
+        cursorPos,
       });
     }
   }
 
   onTextInput(event: Event, contentIndex: number): void {
-    const value = (event.target as HTMLTextAreaElement).value;
+    const waTextarea = event.target as any;
+    const value = waTextarea.value;
     this.textChange.emit({ nodeId: this.node().id, contentIndex, text: value });
   }
 

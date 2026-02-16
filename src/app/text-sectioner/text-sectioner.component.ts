@@ -33,7 +33,8 @@ export class TextSectionerComponent {
     if (focusId) {
       // Focus the target textarea after Angular renders
       requestAnimationFrame(() => {
-        const el = document.querySelector(`textarea[data-node-id="${focusId}"]`) as HTMLTextAreaElement | null;
+        const el = document.querySelector(`wa-textarea[data-node-id="${focusId}"]`) as any;
+        // Web Awesome components have a focus() method
         el?.focus();
       });
     }

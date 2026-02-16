@@ -13,17 +13,18 @@
 
   @for (item of node().children; track $index) {
     @if (isString(item)) {
-      <textarea
+      <wa-textarea
         class="text-area"
         dir="rtl"
+        resize="auto"
         [attr.data-node-id]="node().id"
         [attr.data-content-index]="$index"
         [value]="item"
         (input)="onTextInput($event, $index)"
-        (keydown)="onKeydown($event, textarea, $index)"
-        #textarea
+        (keydown)="onKeydown($event, waTextarea, $index)"
+        #waTextarea
         placeholder="Enter text here..."
-      ></textarea>
+      ></wa-textarea>
     } @else {
       <app-text-node
         [node]="item"

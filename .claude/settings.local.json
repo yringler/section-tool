@@ -5,7 +5,8 @@
       "WebFetch(domain:angular.dev)",
       "WebFetch(domain:angular.schule)",
       "WebFetch(domain:analogjs.org)",
-      "WebFetch(domain:www.npmjs.com)"
+      "WebFetch(domain:www.npmjs.com)",
+      "WebFetch(domain:webawesome.com)"
     ]
   }
 }
