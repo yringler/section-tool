@@ -22,7 +22,7 @@ describe('TextSectionService', () => {
       const roots = service.rootNodes();
       expect(roots).toHaveLength(1);
       expect(roots[0].label).toBe('');
-      expect(roots[0].children).toEqual([]);
+      expect(roots[0].children).toEqual(['']);  // Always has one empty text field
     });
   });
 
@@ -59,7 +59,7 @@ describe('TextSectionService', () => {
     it('should update text of nested node', () => {
       const root = service.rootNodes()[0];
       const child = service.createNode('child text');
-      root.children.push(child);
+      root.children = [child];  // Replace empty text with child
       service.rootNodes.set([root]);
 
       service.updateNodeText(child.id, 0, 'new child text');
@@ -83,7 +83,7 @@ describe('TextSectionService', () => {
     it('should update label of nested node', () => {
       const root = service.rootNodes()[0];
       const child = service.createNode('child text');
-      root.children.push(child);
+      root.children = [child];  // Replace empty text with child
       service.rootNodes.set([root]);
 
       service.updateNodeLabel(child.id, 'child label');
@@ -155,7 +155,7 @@ describe('TextSectionService', () => {
     it('should split child node into sibling', () => {
       const root = service.rootNodes()[0];
       const child1 = service.createNode('First child');
-      root.children.push(child1);
+      root.children = [child1];  // Replace empty text with child
       service.rootNodes.set([root]);
 
       const newId = service.splitToSibling(child1.id, 0, 5);
@@ -253,7 +253,7 @@ describe('TextSectionService', () => {
       const root = service.rootNodes()[0];
       const child1 = service.createNode('Child 1');
       const child2 = service.createNode('Child 2');
-      root.children.push(child1, child2);
+      root.children = [child1, child2];  // Replace empty text with children
       service.rootNodes.set([root]);
 
       const prevId = service.mergeWithPreviousSibling(child2.id);
@@ -270,7 +270,7 @@ describe('TextSectionService', () => {
       const child2 = service.createNode('Child 2');
       const grandchild = service.createNode('Grandchild');
       child2.children.push(grandchild);
-      root.children.push(child1, child2);
+      root.children = [child1, child2];  // Replace empty text with children
       service.rootNodes.set([root]);
 
       service.mergeWithPreviousSibling(child2.id);
@@ -313,7 +313,7 @@ describe('TextSectionService', () => {
       const root = service.rootNodes()[0];
       const child1 = service.createNode('Child 1');
       const child2 = service.createNode('Child 2');
-      root.children.push(child1, child2);
+      root.children = [child1, child2];  // Replace empty text with children
       service.rootNodes.set([root]);
 
       service.deleteNode(child1.id);
@@ -329,7 +329,7 @@ describe('TextSectionService', () => {
 
       const roots = service.rootNodes();
       expect(roots).toHaveLength(1);
-      expect(roots[0].children).toEqual([]);
+      expect(roots[0].children).toEqual(['']);  // Always has one empty text field
     });
 
     it('should do nothing if node not found', () => {
@@ -350,7 +350,7 @@ describe('TextSectionService', () => {
       const roots = service.rootNodes();
       expect(roots).toHaveLength(1);
       expect(roots[0].label).toBe('');
-      expect(roots[0].children).toEqual([]);
+      expect(roots[0].children).toEqual(['']);  // Always has one empty text field
     });
   });
 

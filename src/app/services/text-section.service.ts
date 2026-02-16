@@ -11,7 +11,7 @@ export class TextSectionService {
     return {
       id: crypto.randomUUID(),
       label,
-      children: text ? [text] : [],  // Only include text if non-empty
+      children: [text],  // Always include text to ensure textarea renders
     };
   }
 
