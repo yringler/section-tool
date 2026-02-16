@@ -17,13 +17,13 @@ export class TextSectionerComponent {
   xmlOutput = this.service.xmlOutput;
 
   onNodeKeydown(event: NodeKeydownEvent): void {
-    const { nodeId, event: keyEvent, cursorPos } = event;
+    const { nodeId, contentIndex, event: keyEvent, cursorPos } = event;
     let focusId: string | null = null;
 
     if (keyEvent.key === 'Enter' && !keyEvent.shiftKey) {
-      focusId = this.service.splitToChild(nodeId, cursorPos);
+      focusId = this.service.splitToChild(nodeId, contentIndex, cursorPos);
     } else if (keyEvent.key === 'Tab' && !keyEvent.shiftKey) {
-      focusId = this.service.splitToSibling(nodeId, cursorPos);
+      focusId = this.service.splitToSibling(nodeId, contentIndex, cursorPos);
     } else if (keyEvent.key === 'Enter' && keyEvent.shiftKey) {
       focusId = this.service.mergeWithParent(nodeId);
     } else if (keyEvent.key === 'Tab' && keyEvent.shiftKey) {
@@ -40,7 +40,7 @@ export class TextSectionerComponent {
   }
 
   onTextChange(event: NodeTextChangeEvent): void {
-    this.service.updateNodeText(event.nodeId, event.text);
+    this.service.updateNodeText(event.nodeId, event.contentIndex, event.text);
   }
 
   onLabelChange(event: NodeLabelChangeEvent): void {

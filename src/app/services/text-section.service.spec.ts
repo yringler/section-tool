@@ -21,7 +21,6 @@ describe('TextSectionService', () => {
     it('should initialize with one empty root node', () => {
       const roots = service.rootNodes();
       expect(roots).toHaveLength(1);
-      expect(roots[0].text).toBe('');
       expect(roots[0].label).toBe('');
       expect(roots[0].children).toEqual([]);
     });
@@ -30,17 +29,17 @@ describe('TextSectionService', () => {
   describe('createNode', () => {
     it('should create a node with text', () => {
       const node = service.createNode('test text');
-      expect(node.text).toBe('test text');
+      expect(node.children).toHaveLength(1);
+      expect(node.children[0]).toBe('test text');
       expect(node.label).toBe('');
-      expect(node.children).toEqual([]);
       expect(node.id).toBeTruthy();
     });
 
     it('should create a node with text and label', () => {
       const node = service.createNode('test text', 'test label');
-      expect(node.text).toBe('test text');
+      expect(node.children).toHaveLength(1);
+      expect(node.children[0]).toBe('test text');
       expect(node.label).toBe('test label');
-      expect(node.children).toEqual([]);
     });
 
     it('should generate unique IDs for each node', () => {
@@ -53,8 +52,8 @@ describe('TextSectionService', () => {
   describe('updateNodeText', () => {
     it('should update text of root node', () => {
       const nodeId = service.rootNodes()[0].id;
-      service.updateNodeText(nodeId, 'updated text');
-      expect(service.rootNodes()[0].text).toBe('updated text');
+      service.updateNodeText(nodeId, 0, 'updated text');
+      expect(service.rootNodes()[0].children[0]).toBe('updated text');
     });
 
     it('should update text of nested node', () => {
@@ -63,13 +62,13 @@ describe('TextSectionService', () => {
       root.children.push(child);
       service.rootNodes.set([root]);
 
-      service.updateNodeText(child.id, 'new child text');
-      expect(service.rootNodes()[0].children[0].text).toBe('new child text');
+      service.updateNodeText(child.id, 0, 'new child text');
+      expect((service.rootNodes()[0].children[0] as TextNode).children[0]).toBe('new child text');
     });
 
     it('should do nothing if node ID not found', () => {
       const initialRoots = service.rootNodes();
-      service.updateNodeText('non-existent-id', 'text');
+      service.updateNodeText('non-existent-id', 0, 'text');
       expect(service.rootNodes()).toEqual(initialRoots);
     });
   });
@@ -88,68 +87,68 @@ describe('TextSectionService', () => {
       service.rootNodes.set([root]);
 
       service.updateNodeLabel(child.id, 'child label');
-      expect(service.rootNodes()[0].children[0].label).toBe('child label');
+      expect((service.rootNodes()[0].children[0] as TextNode).label).toBe('child label');
     });
   });
 
   describe('splitToChild', () => {
     it('should split text at cursor position into child', () => {
       const nodeId = service.rootNodes()[0].id;
-      service.updateNodeText(nodeId, 'Hello World');
+      service.updateNodeText(nodeId, 0, 'Hello World');
 
-      const newId = service.splitToChild(nodeId, 5);
+      const newId = service.splitToChild(nodeId, 0, 5);
 
       const root = service.rootNodes()[0];
-      expect(root.text).toBe('Hello');
-      expect(root.children).toHaveLength(1);
-      expect(root.children[0].text).toBe(' World');
-      expect(root.children[0].id).toBe(newId);
+      expect(root.children[0]).toBe('Hello');
+      expect(root.children).toHaveLength(2);
+      expect((root.children[1] as TextNode).children[0]).toBe(' World');
+      expect((root.children[1] as TextNode).id).toBe(newId);
     });
 
     it('should split at beginning (empty parent text)', () => {
       const nodeId = service.rootNodes()[0].id;
-      service.updateNodeText(nodeId, 'Hello World');
+      service.updateNodeText(nodeId, 0, 'Hello World');
 
-      service.splitToChild(nodeId, 0);
+      service.splitToChild(nodeId, 0, 0);
 
       const root = service.rootNodes()[0];
-      expect(root.text).toBe('');
-      expect(root.children[0].text).toBe('Hello World');
+      expect(root.children[0]).toBe('');
+      expect((root.children[1] as TextNode).children[0]).toBe('Hello World');
     });
 
     it('should split at end (empty child text)', () => {
       const nodeId = service.rootNodes()[0].id;
-      service.updateNodeText(nodeId, 'Hello World');
+      service.updateNodeText(nodeId, 0, 'Hello World');
 
-      service.splitToChild(nodeId, 11);
+      service.splitToChild(nodeId, 0, 11);
 
       const root = service.rootNodes()[0];
-      expect(root.text).toBe('Hello World');
-      expect(root.children[0].text).toBe('');
+      expect(root.children[0]).toBe('Hello World');
+      expect((root.children[1] as TextNode).children[0]).toBe('');
     });
 
     it('should return the new child ID', () => {
       const nodeId = service.rootNodes()[0].id;
-      service.updateNodeText(nodeId, 'Hello World');
+      service.updateNodeText(nodeId, 0, 'Hello World');
 
-      const newId = service.splitToChild(nodeId, 5);
+      const newId = service.splitToChild(nodeId, 0, 5);
 
       expect(newId).toBeTruthy();
-      expect(service.rootNodes()[0].children[0].id).toBe(newId);
+      expect((service.rootNodes()[0].children[1] as TextNode).id).toBe(newId);
     });
   });
 
   describe('splitToSibling', () => {
     it('should split root node into sibling', () => {
       const nodeId = service.rootNodes()[0].id;
-      service.updateNodeText(nodeId, 'Hello World');
+      service.updateNodeText(nodeId, 0, 'Hello World');
 
-      const newId = service.splitToSibling(nodeId, 5);
+      const newId = service.splitToSibling(nodeId, 0, 5);
 
       const roots = service.rootNodes();
       expect(roots).toHaveLength(2);
-      expect(roots[0].text).toBe('Hello');
-      expect(roots[1].text).toBe(' World');
+      expect(roots[0].children[0]).toBe('Hello');
+      expect(roots[1].children[0]).toBe(' World');
       expect(roots[1].id).toBe(newId);
     });
 
@@ -159,17 +158,17 @@ describe('TextSectionService', () => {
       root.children.push(child1);
       service.rootNodes.set([root]);
 
-      const newId = service.splitToSibling(child1.id, 5);
+      const newId = service.splitToSibling(child1.id, 0, 5);
 
       const updatedRoot = service.rootNodes()[0];
       expect(updatedRoot.children).toHaveLength(2);
-      expect(updatedRoot.children[0].text).toBe('First');
-      expect(updatedRoot.children[1].text).toBe(' child');
-      expect(updatedRoot.children[1].id).toBe(newId);
+      expect((updatedRoot.children[0] as TextNode).children[0]).toBe('First');
+      expect((updatedRoot.children[1] as TextNode).children[0]).toBe(' child');
+      expect((updatedRoot.children[1] as TextNode).id).toBe(newId);
     });
 
     it('should return null if node not found', () => {
-      const newId = service.splitToSibling('non-existent-id', 5);
+      const newId = service.splitToSibling('non-existent-id', 0, 5);
       expect(newId).toBeNull();
     });
 
@@ -180,21 +179,21 @@ describe('TextSectionService', () => {
       const root3 = service.createNode('Third');
       service.rootNodes.set([root1, root2, root3]);
 
-      service.splitToSibling(root2.id, 3);
+      service.splitToSibling(root2.id, 0, 3);
 
       const roots = service.rootNodes();
       expect(roots).toHaveLength(4);
-      expect(roots[0].text).toBe('First');
-      expect(roots[1].text).toBe('Sec');
-      expect(roots[2].text).toBe('ond');
-      expect(roots[3].text).toBe('Third');
+      expect(roots[0].children[0]).toBe('First');
+      expect(roots[1].children[0]).toBe('Sec');
+      expect(roots[2].children[0]).toBe('ond');
+      expect(roots[3].children[0]).toBe('Third');
     });
   });
 
   describe('mergeWithParent', () => {
     it('should merge child text into parent', () => {
       const root = service.rootNodes()[0];
-      service.updateNodeText(root.id, 'Parent text');
+      service.updateNodeText(root.id, 0, 'Parent text');
       const child = service.createNode('Child text');
       root.children.push(child);
       service.rootNodes.set([root]);
@@ -202,14 +201,14 @@ describe('TextSectionService', () => {
       const parentId = service.mergeWithParent(child.id);
 
       const updatedRoot = service.rootNodes()[0];
-      expect(updatedRoot.text).toBe('Parent textChild text');
-      expect(updatedRoot.children).toHaveLength(0);
+      expect(updatedRoot.children[0]).toBe('Parent textChild text');
+      expect(updatedRoot.children).toHaveLength(1);
       expect(parentId).toBe(root.id);
     });
 
     it('should move child\'s children to parent', () => {
       const root = service.rootNodes()[0];
-      service.updateNodeText(root.id, 'Root');
+      service.updateNodeText(root.id, 0, 'Root');
       const child = service.createNode('Child');
       const grandchild = service.createNode('Grandchild');
       child.children.push(grandchild);
@@ -219,9 +218,9 @@ describe('TextSectionService', () => {
       service.mergeWithParent(child.id);
 
       const updatedRoot = service.rootNodes()[0];
-      expect(updatedRoot.text).toBe('RootChild');
-      expect(updatedRoot.children).toHaveLength(1);
-      expect(updatedRoot.children[0].text).toBe('Grandchild');
+      expect(updatedRoot.children[0]).toBe('RootChild');
+      expect(updatedRoot.children).toHaveLength(2);
+      expect((updatedRoot.children[1] as TextNode).children[0]).toBe('Grandchild');
     });
 
     it('should return null if node has no parent', () => {
@@ -246,7 +245,7 @@ describe('TextSectionService', () => {
 
       const roots = service.rootNodes();
       expect(roots).toHaveLength(1);
-      expect(roots[0].text).toBe('FirstSecond');
+      expect(roots[0].children[0]).toBe('FirstSecond');
       expect(prevId).toBe(root1.id);
     });
 
@@ -261,7 +260,7 @@ describe('TextSectionService', () => {
 
       const updatedRoot = service.rootNodes()[0];
       expect(updatedRoot.children).toHaveLength(1);
-      expect(updatedRoot.children[0].text).toBe('Child 1Child 2');
+      expect((updatedRoot.children[0] as TextNode).children[0]).toBe('Child 1Child 2');
       expect(prevId).toBe(child1.id);
     });
 
@@ -278,8 +277,8 @@ describe('TextSectionService', () => {
 
       const updatedRoot = service.rootNodes()[0];
       expect(updatedRoot.children).toHaveLength(1);
-      expect(updatedRoot.children[0].children).toHaveLength(1);
-      expect(updatedRoot.children[0].children[0].text).toBe('Grandchild');
+      expect((updatedRoot.children[0] as TextNode).children).toHaveLength(2);
+      expect(((updatedRoot.children[0] as TextNode).children[1] as TextNode).children[0]).toBe('Grandchild');
     });
 
     it('should return null if node is first sibling', () => {
@@ -307,7 +306,7 @@ describe('TextSectionService', () => {
 
       const roots = service.rootNodes();
       expect(roots).toHaveLength(1);
-      expect(roots[0].text).toBe('Second');
+      expect(roots[0].children[0]).toBe('Second');
     });
 
     it('should delete child node', () => {
@@ -321,7 +320,7 @@ describe('TextSectionService', () => {
 
       const updatedRoot = service.rootNodes()[0];
       expect(updatedRoot.children).toHaveLength(1);
-      expect(updatedRoot.children[0].text).toBe('Child 2');
+      expect((updatedRoot.children[0] as TextNode).children[0]).toBe('Child 2');
     });
 
     it('should ensure at least one root node exists', () => {
@@ -330,7 +329,7 @@ describe('TextSectionService', () => {
 
       const roots = service.rootNodes();
       expect(roots).toHaveLength(1);
-      expect(roots[0].text).toBe('');
+      expect(roots[0].children).toEqual([]);
     });
 
     it('should do nothing if node not found', () => {
@@ -350,7 +349,6 @@ describe('TextSectionService', () => {
 
       const roots = service.rootNodes();
       expect(roots).toHaveLength(1);
-      expect(roots[0].text).toBe('');
       expect(roots[0].label).toBe('');
       expect(roots[0].children).toEqual([]);
     });
@@ -459,6 +457,63 @@ describe('TextSectionService', () => {
       expect(lines[2]).toBe('  <section>Child</section></section>');
       expect(lines.length).toBe(3);
     });
+
+    it('should render parent text before children, with multiple children', () => {
+      service.clearAll();
+      const parent = service.createNode('Parent text before children', 'Parent');
+      const child1 = service.createNode('First child text', 'Child1');
+      const child2 = service.createNode('Second child text', 'Child2');
+      parent.children.push(child1, child2);
+      service.rootNodes.set([parent]);
+
+      const xml = service.xmlOutput();
+
+      // Verify structure: parent opens, parent text, children, parent closes
+      expect(xml).toContain('<section label="Parent">');
+      expect(xml).toContain('Parent text before children');
+      expect(xml).toContain('<section label="Child1">First child text</section>');
+      expect(xml).toContain('<section label="Child2">Second child text</section>');
+      expect(xml).toContain('</section>');
+
+      // Verify order: parent text comes before children
+      const parentTextIndex = xml.indexOf('Parent text before children');
+      const child1Index = xml.indexOf('First child text');
+      const child2Index = xml.indexOf('Second child text');
+      expect(parentTextIndex).toBeLessThan(child1Index);
+      expect(child1Index).toBeLessThan(child2Index);
+    });
+
+    it('should handle parent with text and nested children at multiple levels', () => {
+      service.clearAll();
+      const root = service.createNode('Introduction text', 'Chapter');
+      const section1 = service.createNode('Section 1 content', 'Section1');
+      const subsection = service.createNode('Subsection details', 'Subsection');
+      const section2 = service.createNode('Section 2 content', 'Section2');
+
+      section1.children.push(subsection);
+      root.children.push(section1, section2);
+      service.rootNodes.set([root]);
+
+      const xml = service.xmlOutput();
+
+      // Verify the hierarchical structure
+      expect(xml).toContain('<section label="Chapter">');
+      expect(xml).toContain('Introduction text');
+      expect(xml).toContain('<section label="Section1">');
+      expect(xml).toContain('Section 1 content');
+      expect(xml).toContain('<section label="Subsection">Subsection details</section>');
+      expect(xml).toContain('<section label="Section2">Section 2 content</section>');
+
+      // Verify ordering
+      const introIndex = xml.indexOf('Introduction text');
+      const section1Index = xml.indexOf('Section 1 content');
+      const subsectionIndex = xml.indexOf('Subsection details');
+      const section2Index = xml.indexOf('Section 2 content');
+
+      expect(introIndex).toBeLessThan(section1Index);
+      expect(section1Index).toBeLessThan(subsectionIndex);
+      expect(subsectionIndex).toBeLessThan(section2Index);
+    });
   });
 
   describe('computed xmlOutput reactivity', () => {
@@ -470,7 +525,7 @@ describe('TextSectionService', () => {
       const xml1 = service.xmlOutput();
       expect(xml1).toBe('<section>Initial</section>');
 
-      service.updateNodeText(root.id, 'Updated');
+      service.updateNodeText(root.id, 0, 'Updated');
       const xml2 = service.xmlOutput();
       expect(xml2).toBe('<section>Updated</section>');
     });

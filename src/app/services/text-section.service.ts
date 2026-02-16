@@ -7,17 +7,24 @@ export class TextSectionService {
 
   readonly xmlOutput = computed(() => this.nodesToXml(this.rootNodes(), 0));
 
-  createNode(text: string, label = ''): TextNode {
+  createNode(text: string = '', label = ''): TextNode {
     return {
       id: crypto.randomUUID(),
-      text,
       label,
-      children: [],
+      children: text ? [text] : [],  // Only include text if non-empty
     };
   }
 
-  updateNodeText(nodeId: string, text: string): void {
-    this.mutateNode(nodeId, (node) => (node.text = text));
+  updateNodeText(nodeId: string, contentIndex: number, text: string): void {
+    this.mutateNode(nodeId, (node) => {
+      // Ensure the content index exists and is a string
+      if (contentIndex < node.children.length && typeof node.children[contentIndex] === 'string') {
+        node.children[contentIndex] = text;
+      } else if (contentIndex === node.children.length) {
+        // Adding new text at the end
+        node.children.push(text);
+      }
+    });
   }
 
   updateNodeLabel(nodeId: string, label: string): void {
@@ -25,34 +32,66 @@ export class TextSectionService {
   }
 
   /** Split text from cursor to end into a new child of this node */
-  splitToChild(nodeId: string, cursorPos: number): string | null {
+  splitToChild(nodeId: string, contentIndex: number, cursorPos: number): string | null {
     let newId: string | null = null;
     this.mutateNode(nodeId, (node) => {
-      const remaining = node.text.substring(cursorPos);
-      node.text = node.text.substring(0, cursorPos);
-      const child = this.createNode(remaining);
-      newId = child.id;
-      node.children.push(child);
+      const item = node.children[contentIndex];
+
+      if (typeof item === 'string') {
+        // Splitting text
+        const beforeCursor = item.substring(0, cursorPos);
+        const afterCursor = item.substring(cursorPos);
+
+        // Create new child - use createNode but ensure it has the text (even if empty)
+        const newChild: TextNode = {
+          id: crypto.randomUUID(),
+          label: '',
+          children: [afterCursor],  // Always include the text, even if empty
+        };
+        newId = newChild.id;
+
+        // Replace the original text with beforeCursor, then insert newChild
+        // Keep the beforeCursor even if empty to maintain structure
+        node.children.splice(contentIndex, 1, beforeCursor, newChild);
+      } else {
+        // Cursor is on a child node - insert new child after it
+        const newChild = this.createNode('');
+        newId = newChild.id;
+        node.children.splice(contentIndex + 1, 0, newChild);
+      }
     });
     return newId;
   }
 
   /** Split text from cursor to end into a new sibling after this node */
-  splitToSibling(nodeId: string, cursorPos: number): string | null {
+  splitToSibling(nodeId: string, contentIndex: number, cursorPos: number): string | null {
     let newId: string | null = null;
     const roots = this.rootNodes();
     const parent = this.findParent(nodeId, roots);
 
-    const siblings = parent ? parent.children : roots;
-    const index = siblings.findIndex((n) => n.id === nodeId);
-    if (index === -1) return null;
+    this.mutateNode(nodeId, (node) => {
+      const item = node.children[contentIndex];
 
-    const node = siblings[index];
-    const remaining = node.text.substring(cursorPos);
-    node.text = node.text.substring(0, cursorPos);
-    const sibling = this.createNode(remaining);
-    newId = sibling.id;
-    siblings.splice(index + 1, 0, sibling);
+      if (typeof item === 'string') {
+        // Split text in current node
+        const beforeCursor = item.substring(0, cursorPos);
+        const afterCursor = item.substring(cursorPos);
+
+        node.children[contentIndex] = beforeCursor;
+
+        // Create new sibling with remaining text
+        const sibling = this.createNode('');
+        sibling.children = [afterCursor];
+        newId = sibling.id;
+
+        // Insert sibling after current node
+        const siblings = parent ? parent.children : roots;
+        const nodeIndex = siblings.findIndex(c => this.isTextNode(c) && c.id === nodeId);
+        if (nodeIndex !== -1) {
+          siblings.splice(nodeIndex + 1, 0, sibling);
+        }
+      }
+    });
 
     this.rootNodes.set([...roots]);
     return newId;
@@ -64,13 +103,18 @@ export class TextSectionService {
     const parent = this.findParent(nodeId, roots);
     if (!parent) return null;
 
-    const index = parent.children.findIndex((n) => n.id === nodeId);
-    if (index === -1) return null;
+    const nodeIndex = parent.children.findIndex(
+      c => this.isTextNode(c) && c.id === nodeId
+    );
+    if (nodeIndex === -1) return null;
 
-    const node = parent.children[index];
-    parent.text += node.text;
-    // Move the node's children into the parent at the same position
-    parent.children.splice(index, 1, ...node.children);
+    const node = parent.children[nodeIndex] as TextNode;
+
+    // Remove node and splice in its children at same position
+    parent.children.splice(nodeIndex, 1, ...node.children);
+
+    // Merge adjacent text strings
+    this.mergeAdjacentStrings(parent.children);
 
     this.rootNodes.set([...roots]);
     return parent.id;
@@ -81,15 +125,30 @@ export class TextSectionService {
     const roots = this.rootNodes();
     const parent = this.findParent(nodeId, roots);
     const siblings = parent ? parent.children : roots;
-    const index = siblings.findIndex((n) => n.id === nodeId);
-    if (index <= 0) return null;
 
-    const prev = siblings[index - 1];
-    const node = siblings[index];
-    prev.text += node.text;
-    // Move children into previous sibling
+    const nodeIndex = siblings.findIndex(
+      c => this.isTextNode(c) && c.id === nodeId
+    );
+    if (nodeIndex <= 0) return null;
+
+    // Find previous node (skip text strings)
+    let prevIndex = nodeIndex - 1;
+    while (prevIndex >= 0 && typeof siblings[prevIndex] === 'string') {
+      prevIndex--;
+    }
+    if (prevIndex < 0) return null;
+
+    const prev = siblings[prevIndex] as TextNode;
+    const node = siblings[nodeIndex] as TextNode;
+
+    // Append current node's children to previous sibling
     prev.children.push(...node.children);
-    siblings.splice(index, 1);
+
+    // Merge adjacent text strings in the previous sibling
+    this.mergeAdjacentStrings(prev.children);
+
+    // Remove current node (and any text between prev and current)
+    siblings.splice(prevIndex + 1, nodeIndex - prevIndex);
 
     this.rootNodes.set([...roots]);
     return prev.id;
@@ -99,12 +158,13 @@ export class TextSectionService {
     const roots = this.rootNodes();
     const parent = this.findParent(nodeId, roots);
     const siblings = parent ? parent.children : roots;
-    const index = siblings.findIndex((n) => n.id === nodeId);
+    const index = siblings.findIndex((c) => this.isTextNode(c) && c.id === nodeId);
     if (index !== -1) {
       siblings.splice(index, 1);
     }
     // Ensure at least one root node
-    if (roots.length === 0) {
+    const hasNodeChildren = roots.some(c => this.isTextNode(c));
+    if (!hasNodeChildren) {
       roots.push(this.createNode(''));
     }
     this.rootNodes.set([...roots]);
@@ -112,6 +172,20 @@ export class TextSectionService {
 
   clearAll(): void {
     this.rootNodes.set([this.createNode('')]);
+  }
+
+  private isTextNode(item: TextNode | string): item is TextNode {
+    return typeof item !== 'string';
+  }
+
+  private mergeAdjacentStrings(items: (TextNode | string)[]): void {
+    for (let i = items.length - 1; i > 0; i--) {
+      if (typeof items[i] === 'string' && typeof items[i - 1] === 'string') {
+        // Merge items[i] into items[i-1] and remove items[i]
+        items[i - 1] = (items[i - 1] as string) + (items[i] as string);
+        items.splice(i, 1);
+      }
+    }
   }
 
   private mutateNode(
@@ -126,41 +200,84 @@ export class TextSectionService {
     }
   }
 
-  private findNode(id: string, nodes: TextNode[]): TextNode | null {
-    for (const node of nodes) {
-      if (node.id === id) return node;
-      const found = this.findNode(id, node.children);
-      if (found) return found;
+  private findNode(id: string, nodes: (TextNode | string)[]): TextNode | null {
+    for (const item of nodes) {
+      if (this.isTextNode(item)) {
+        if (item.id === id) return item;
+        const found = this.findNode(id, item.children);
+        if (found) return found;
+      }
     }
     return null;
   }
 
-  private findParent(id: string, nodes: TextNode[], parent: TextNode | null = null): TextNode | null {
-    for (const node of nodes) {
-      if (node.id === id) return parent;
-      const found = this.findParent(id, node.children, node);
-      if (found) return found;
+  private findParent(id: string, nodes: (TextNode | string)[], parent: TextNode | null = null): TextNode | null {
+    for (const item of nodes) {
+      if (this.isTextNode(item)) {
+        if (item.id === id) return parent;
+        const found = this.findParent(id, item.children, item);
+        if (found) return found;
+      }
     }
     return null;
   }
 
-  private nodesToXml(nodes: TextNode[], indent: number): string {
+  private nodesToXml(nodes: (TextNode | string)[], indent: number): string {
     const pad = '  '.repeat(indent);
+
     return nodes
-      .map((node) => {
-        const labelAttr = node.label ? ` label="${this.escapeXml(node.label)}"` : '';
-        const hasChildren = node.children.length > 0;
-        const hasText = node.text.trim().length > 0;
-
-        if (!hasText && !hasChildren) return '';
-
-        if (hasChildren) {
-          const childXml = this.nodesToXml(node.children, indent + 1);
-          const textPart = hasText ? `${pad}  ${this.escapeXml(node.text.trim())}\n` : '';
-          return `${pad}<section${labelAttr}>\n${textPart}${childXml}${pad}</section>`;
+      .map((item) => {
+        // Handle text strings
+        if (typeof item === 'string') {
+          const trimmed = item.trim();
+          return trimmed ? `${pad}${this.escapeXml(trimmed)}` : '';
         }
 
-        return `${pad}<section${labelAttr}>${this.escapeXml(node.text.trim())}</section>`;
+        // Handle TextNode
+        const node = item;
+        const labelAttr = node.label ? ` label="${this.escapeXml(node.label)}"` : '';
+        const hasChildren = node.children.length > 0;
+
+        if (!hasChildren) {
+          return '';  // Skip empty nodes
+        }
+
+        // Check if this node has only text (no child nodes)
+        const hasChildNodes = node.children.some(c => this.isTextNode(c));
+        const allText = node.children.filter(c => typeof c === 'string').map(s => s.trim()).join('');
+
+        if (!hasChildNodes && allText) {
+          // Inline text-only nodes
+          return `${pad}<section${labelAttr}>${this.escapeXml(allText)}</section>`;
+        }
+
+        if (!hasChildNodes && !allText) {
+          // Empty node - skip it
+          return '';
+        }
+
+        // Has child nodes - use multi-line format
+        const childLines = this.nodesToXml(node.children, indent + 1);
+
+        // Get the last line to potentially append closing tag
+        const lines = childLines.split('\n').filter(l => l.length > 0);
+        if (lines.length === 0) {
+          return `${pad}<section${labelAttr}></section>`;
+        }
+
+        const lastLine = lines[lines.length - 1];
+        const otherLines = lines.slice(0, -1);
+
+        // If last line is a complete section tag, append our closing tag to it
+        if (lastLine.trim().startsWith('<section') && lastLine.trim().endsWith('</section>')) {
+          const result = otherLines.length > 0
+            ? `${pad}<section${labelAttr}>\n${otherLines.join('\n')}\n${lastLine}</section>`
+            : `${pad}<section${labelAttr}>\n${lastLine}</section>`;
+          return result;
+        }
+
+        // Otherwise use normal multi-line format
+        return `${pad}<section${labelAttr}>\n${childLines}\n${pad}</section>`;
       })
       .filter((s) => s.length > 0)
       .join('\n');

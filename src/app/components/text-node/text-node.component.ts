@@ -3,12 +3,14 @@ import { TextNode } from '../../models/text-node.model';
 
 export interface NodeKeydownEvent {
   nodeId: string;
+  contentIndex: number;  // Index in children array
   event: KeyboardEvent;
   cursorPos: number;
 }
 
 export interface NodeTextChangeEvent {
   nodeId: string;
+  contentIndex: number;  // Index in children array
   text: string;
 }
 
@@ -37,7 +39,7 @@ export class TextNodeComponent {
   labelChange = output<NodeLabelChangeEvent>();
   deleteNode = output<NodeDeleteEvent>();
 
-  onKeydown(event: KeyboardEvent, textarea: HTMLTextAreaElement): void {
+  onKeydown(event: KeyboardEvent, textarea: HTMLTextAreaElement, contentIndex: number): void {
     if (
       event.key === 'Enter' ||
       event.key === 'Tab'
@@ -45,15 +47,20 @@ export class TextNodeComponent {
       event.preventDefault();
       this.nodeKeydown.emit({
         nodeId: this.node().id,
+        contentIndex,
         event,
         cursorPos: textarea.selectionStart,
       });
     }
   }
 
-  onTextInput(event: Event): void {
+  onTextInput(event: Event, contentIndex: number): void {
     const value = (event.target as HTMLTextAreaElement).value;
-    this.textChange.emit({ nodeId: this.node().id, text: value });
+    this.textChange.emit({ nodeId: this.node().id, contentIndex, text: value });
+  }
+
+  isString(item: TextNode | string): item is string {
+    return typeof item === 'string';
   }
 
   onLabelInput(event: Event): void {

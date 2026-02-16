@@ -1,6 +1,6 @@
 export interface TextNode {
   id: string;
-  text: string;
   label: string;
-  children: TextNode[];
+  children: (TextNode | string)[];  // Mixed content: text strings and child nodes
+  text?: string;  // Deprecated: kept for backward compatibility
 }
