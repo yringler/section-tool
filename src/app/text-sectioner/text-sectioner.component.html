@@ -18,76 +18,30 @@
       </div>
 
       <div class="nodes-container">
-        <ng-container *ngTemplateOutlet="nodeTree; context: {nodes: rootNodes, parent: null, siblings: rootNodes, level: 0}"></ng-container>
+        <app-text-node
+          *ngFor="let node of rootNodes()"
+          [node]="node"
+          [parent]="null"
+          [siblings]="rootNodes()"
+          [level]="0"
+          (keydown)="onTextareaKeydown($event)"
+          (textChange)="onTextChange($event)"
+          (labelChange)="onLabelChange($event)"
+          (deleteNode)="onDeleteNode($event)"
+          (startEditLabel)="onStartEditLabel($event)"
+          (finishEditLabel)="onFinishEditLabel($event)"
+        />
       </div>
     </div>
 
     <!-- Right Panel: XML Output -->
     <div class="right-panel">
-      <div class="output-header">
-        <h2>XML Output</h2>
-        <div class="output-actions">
-          <button class="btn btn-secondary" (click)="copyXML()" [disabled]="!xmlOutput">
-            Copy
-          </button>
-          <button class="btn btn-secondary" (click)="downloadXML()" [disabled]="!xmlOutput">
-            Download
-          </button>
-          <button class="btn btn-danger" (click)="clearAll()">
-            Clear All
-          </button>
-        </div>
-      </div>
-      <pre class="xml-output" dir="ltr">{{ xmlOutput || 'XML will appear here as you create sections...' }}</pre>
+      <app-xml-output
+        [xmlContent]="xmlOutput()"
+        (copyClicked)="copyXML()"
+        (downloadClicked)="downloadXML()"
+        (clearAllClicked)="clearAll()"
+      />
     </div>
   </div>
 </div>
-
-<!-- Recursive template for nodes -->
-<ng-template #nodeTree let-nodes="nodes" let-parent="parent" let-siblings="siblings" let-level="level">
-  <div class="node-list">
-    <div *ngFor="let node of nodes; let i = index" class="node-wrapper" [style.margin-left.px]="level * 20">
-      <div class="node-container">
-        <div class="node-header">
-          <span class="level-indicator">Level {{ level + 1 }}</span>
-
-          <div class="label-container" (click)="startEditingLabel($event, node)">
-            <input
-              *ngIf="node.isEditing"
-              type="text"
-              [(ngModel)]="node.label"
-              (keydown)="onLabelKeydown($event, node)"
-              (blur)="onLabelBlur(node)"
-              [attr.data-node-id]="node.id"
-              placeholder="Add label..."
-              class="label-input"
-              dir="rtl"
-            />
-            <span *ngIf="!node.isEditing" class="label-display" [class.empty]="!node.label">
-              {{ node.label || 'Click to add label' }}
-            </span>
-          </div>
-
-          <button class="btn-delete" (click)="deleteNode(node, siblings)" title="Delete this section">
-            ×
-          </button>
-        </div>
-
-        <textarea
-          [(ngModel)]="node.text"
-          (keydown)="onTextareaKeydown($event, node, parent, siblings)"
-          (input)="generateXML()"
-          class="node-textarea"
-          [placeholder]="'Enter text... (Level ' + (level + 1) + ')'"
-          dir="rtl"
-          rows="3"
-        ></textarea>
-
-        <!-- Children nodes -->
-        <div *ngIf="node.children.length > 0" class="children">
-          <ng-container *ngTemplateOutlet="nodeTree; context: {nodes: node.children, parent: node, siblings: node.children, level: level + 1}"></ng-container>
-        </div>
-      </div>
-    </div>
-  </div>
-</ng-template>

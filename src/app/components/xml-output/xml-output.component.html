@@ -1,0 +1,17 @@
+<div class="output-container">
+  <div class="output-header">
+    <h2>XML Output</h2>
+    <div class="output-actions">
+      <button class="btn btn-secondary" (click)="copyClicked.emit()" [disabled]="!xmlContent()">
+        Copy
+      </button>
+      <button class="btn btn-secondary" (click)="downloadClicked.emit()" [disabled]="!xmlContent()">
+        Download
+      </button>
+      <button class="btn btn-danger" (click)="clearAllClicked.emit()">
+        Clear All
+      </button>
+    </div>
+  </div>
+  <pre class="xml-output" dir="ltr">{{ xmlContent() || 'XML will appear here as you create sections...' }}</pre>
+</div>

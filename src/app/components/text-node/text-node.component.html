@@ -1,0 +1,53 @@
+<div class="node-container">
+  <div class="node-header">
+    <span class="level-indicator">Level {{ level() + 1 }}</span>
+
+    <div class="label-container" (click)="onStartEditingLabel($event)">
+      <input
+        *ngIf="node().isEditing"
+        type="text"
+        [(ngModel)]="node().label"
+        (keydown)="onLabelKeydown($event)"
+        (blur)="onLabelBlur()"
+        [attr.data-node-id]="node().id"
+        placeholder="Add label..."
+        class="label-input"
+        dir="rtl"
+      />
+      <span *ngIf="!node().isEditing" class="label-display" [class.empty]="!node().label">
+        {{ node().label || 'Click to add label' }}
+      </span>
+    </div>
+
+    <button class="btn-delete" (click)="onDeleteNode()" title="Delete this section">
+      ×
+    </button>
+  </div>
+
+  <textarea
+    [(ngModel)]="node().text"
+    (keydown)="onTextareaKeydown($event)"
+    (input)="onTextInput()"
+    class="node-textarea"
+    [placeholder]="'Enter text... (Level ' + (level() + 1) + ')'"
+    dir="rtl"
+    rows="3"
+  ></textarea>
+
+  <!-- Children nodes -->
+  <div *ngIf="node().children.length > 0" class="children">
+    <app-text-node
+      *ngFor="let child of node().children"
+      [node]="child"
+      [parent]="node()"
+      [siblings]="node().children"
+      [level]="level() + 1"
+      (keydown)="keydown.emit($event)"
+      (textChange)="textChange.emit($event)"
+      (labelChange)="labelChange.emit($event)"
+      (deleteNode)="deleteNode.emit($event)"
+      (startEditLabel)="startEditLabel.emit($event)"
+      (finishEditLabel)="finishEditLabel.emit($event)"
+    />
+  </div>
+</div>

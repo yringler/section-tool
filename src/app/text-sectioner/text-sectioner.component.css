@@ -84,211 +84,12 @@ h2 {
   border-radius: 8px;
 }
 
-.node-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.node-wrapper {
-  transition: margin-left 0.2s;
-}
-
-.node-container {
-  background: white;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 12px;
-  transition: all 0.2s;
-}
-
-.node-container:focus-within {
-  border-color: #4CAF50;
-  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
-}
-
-.node-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 8px;
-}
-
-.level-indicator {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 600;
-  white-space: nowrap;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.label-container {
-  flex: 1;
-  cursor: pointer;
-}
-
-.label-input {
-  width: 100%;
-  padding: 6px 10px;
-  border: 2px solid #2196F3;
-  border-radius: 4px;
-  font-family: 'David Libre', 'Times New Roman', serif;
-  font-size: 14px;
-  background: #e3f2fd;
-}
-
-.label-input:focus {
-  outline: none;
-  border-color: #1976D2;
-}
-
-.label-display {
-  display: inline-block;
-  padding: 6px 10px;
-  border-radius: 4px;
-  background: #f5f5f5;
-  font-family: 'David Libre', 'Times New Roman', serif;
-  font-size: 14px;
-  transition: background 0.2s;
-}
-
-.label-display:hover {
-  background: #e8f5e9;
-}
-
-.label-display.empty {
-  color: #999;
-  font-style: italic;
-}
-
-.btn-delete {
-  background-color: #ff5252;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 28px;
-  height: 28px;
-  cursor: pointer;
-  font-size: 20px;
-  line-height: 1;
-  padding: 0;
-  transition: all 0.2s;
-}
-
-.btn-delete:hover {
-  background-color: #ff1744;
-  transform: scale(1.1);
-}
-
-.node-textarea {
-  width: 100%;
-  min-height: 80px;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 15px;
-  font-family: 'David Libre', 'Times New Roman', serif;
-  resize: vertical;
-  direction: rtl;
-  text-align: right;
-  line-height: 1.6;
-  transition: border-color 0.2s;
-}
-
-.node-textarea:focus {
-  outline: none;
-  border-color: #4CAF50;
-  background: #f9fff9;
-}
-
-.node-textarea::placeholder {
-  color: #bbb;
-}
-
-.children {
-  margin-top: 15px;
-  padding-top: 15px;
-  border-top: 2px dashed #e0e0e0;
-}
-
-/* Buttons */
-.btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  transition: all 0.2s;
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn-secondary {
-  background-color: #2196F3;
-  color: white;
-}
-
-.btn-secondary:hover:not(:disabled) {
-  background-color: #1976D2;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
-}
-
-.btn-danger {
-  background-color: #f44336;
-  color: white;
-}
-
-.btn-danger:hover:not(:disabled) {
-  background-color: #d32f2f;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(244, 67, 54, 0.3);
-}
-
-/* XML Output */
-.output-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.output-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.xml-output {
-  background: #1e1e1e;
-  color: #d4d4d4;
-  padding: 20px;
-  border-radius: 8px;
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-  font-size: 13px;
-  line-height: 1.6;
-  overflow: auto;
-  flex: 1;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  border: 2px solid #333;
-}
-
-/* Scrollbar Styling */
-.nodes-container::-webkit-scrollbar,
-.xml-output::-webkit-scrollbar {
+.nodes-container::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
 
-.nodes-container::-webkit-scrollbar-track,
-.xml-output::-webkit-scrollbar-track {
+.nodes-container::-webkit-scrollbar-track {
   background: #f1f1f1;
   border-radius: 10px;
 }
@@ -298,14 +99,8 @@ h2 {
   border-radius: 10px;
 }
 
-.xml-output::-webkit-scrollbar-thumb {
-  background: #555;
-  border-radius: 10px;
-}
-
-.nodes-container::-webkit-scrollbar-thumb:hover,
-.xml-output::-webkit-scrollbar-thumb:hover {
-  background: #555;
+.nodes-container::-webkit-scrollbar-thumb:hover {
+  background: #666;
 }
 
 /* Responsive */
@@ -316,9 +111,5 @@ h2 {
 
   .shortcuts {
     font-size: 12px;
-  }
-
-  .node-wrapper {
-    margin-left: 0 !important;
   }
 }
