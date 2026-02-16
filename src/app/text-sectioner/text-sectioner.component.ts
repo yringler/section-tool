@@ -2,13 +2,13 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
-interface Section {
-  label?: string;
-  startIndex: number;
-  endIndex: number;
-  children: Section[];
+interface TextNode {
   id: string;
-  depth: number;
+  label?: string;
+  text: string;
+  children: TextNode[];
+  isEditing: boolean;
+  cursorPosition: number;
 }
 
 @Component({
@@ -19,243 +19,216 @@ interface Section {
   styleUrl: './text-sectioner.component.css'
 })
 export class TextSectionerComponent {
-  hebrewText: string = '';
-  sections: Section[] = [];
-  selectedText: string = '';
-  selectionStart: number = -1;
-  selectionEnd: number = -1;
-  sectionLabel: string = '';
+  rootNodes: TextNode[] = [];
   nextId: number = 1;
   xmlOutput: string = '';
-  nestingMode: 'sibling' | 'child' = 'sibling';
+  initialText: string = '';
 
-  onTextSelect(event: Event) {
-    const textarea = event.target as HTMLTextAreaElement;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-
-    if (start !== end) {
-      this.selectedText = this.hebrewText.substring(start, end);
-      this.selectionStart = start;
-      this.selectionEnd = end;
-    }
+  ngOnInit() {
+    // Start with one root node
+    this.rootNodes = [{
+      id: `node-${this.nextId++}`,
+      text: '',
+      children: [],
+      isEditing: false,
+      cursorPosition: 0
+    }];
   }
 
-  addSection() {
-    if (this.selectionStart === -1 || this.selectionEnd === -1) {
-      alert('Please select text first');
+  onTextareaKeydown(event: KeyboardEvent, node: TextNode, parent: TextNode | null, siblings: TextNode[]) {
+    const textarea = event.target as HTMLTextAreaElement;
+    const cursorPos = textarea.selectionStart;
+
+    // Enter - Create child subsection
+    if (event.key === 'Enter' && !event.shiftKey && !event.ctrlKey) {
+      event.preventDefault();
+      this.createChild(node, cursorPos);
       return;
     }
 
-    const newSection: Section = {
-      label: this.sectionLabel || undefined,
-      startIndex: this.selectionStart,
-      endIndex: this.selectionEnd,
-      children: [],
-      id: `s${this.nextId++}`,
-      depth: 0
-    };
-
-    this.insertSection(newSection);
-    this.generateXML();
-
-    // Reset selection
-    this.selectedText = '';
-    this.selectionStart = -1;
-    this.selectionEnd = -1;
-    this.sectionLabel = '';
-  }
-
-  private insertSection(newSection: Section) {
-    // Try to insert into existing tree
-    const inserted = this.tryInsertIntoTree(this.sections, newSection, 0);
-
-    if (!inserted) {
-      // Add to root level
-      this.sections.push(newSection);
-      this.sections.sort((a, b) => a.startIndex - b.startIndex);
-    }
-  }
-
-  private tryInsertIntoTree(sections: Section[], newSection: Section, currentDepth: number): boolean {
-    for (let i = 0; i < sections.length; i++) {
-      const section = sections[i];
-
-      // Check if new section is completely within this section
-      if (newSection.startIndex >= section.startIndex &&
-          newSection.endIndex <= section.endIndex &&
-          !(newSection.startIndex === section.startIndex && newSection.endIndex === section.endIndex)) {
-
-        // Try to insert into children first
-        newSection.depth = currentDepth + 1;
-        if (!this.tryInsertIntoTree(section.children, newSection, currentDepth + 1)) {
-          // If not inserted into any child, add as direct child
-          section.children.push(newSection);
-          section.children.sort((a, b) => a.startIndex - b.startIndex);
-        }
-        return true;
+    // Shift+Enter - Merge with parent
+    if (event.key === 'Enter' && event.shiftKey) {
+      event.preventDefault();
+      if (parent) {
+        this.mergeWithParent(node, parent, siblings);
       }
+      return;
     }
 
-    newSection.depth = currentDepth;
-    return false;
+    // Tab - Create sibling section
+    if (event.key === 'Tab' && !event.shiftKey) {
+      event.preventDefault();
+      this.createSibling(node, cursorPos, siblings);
+      return;
+    }
+
+    // Shift+Tab - Merge with previous sibling
+    if (event.key === 'Tab' && event.shiftKey) {
+      event.preventDefault();
+      this.mergeWithPreviousSibling(node, siblings);
+      return;
+    }
   }
 
-  removeSection(section: Section) {
-    this.removeSectionFromTree(this.sections, section);
+  private createChild(node: TextNode, cursorPos: number) {
+    if (cursorPos === node.text.length || cursorPos === 0) {
+      // No split needed, just add empty child
+      node.children.push({
+        id: `node-${this.nextId++}`,
+        text: '',
+        children: [],
+        isEditing: false,
+        cursorPosition: 0
+      });
+    } else {
+      // Split text: everything from cursor to end becomes new child
+      const remainingText = node.text.substring(cursorPos);
+      node.text = node.text.substring(0, cursorPos);
+
+      const newChild: TextNode = {
+        id: `node-${this.nextId++}`,
+        text: remainingText.trim(),
+        children: [],
+        isEditing: false,
+        cursorPosition: 0
+      };
+
+      node.children.push(newChild);
+    }
+
     this.generateXML();
   }
 
-  private removeSectionFromTree(sections: Section[], toRemove: Section): boolean {
-    const index = sections.findIndex(s => s.id === toRemove.id);
-    if (index !== -1) {
-      sections.splice(index, 1);
-      return true;
+  private createSibling(node: TextNode, cursorPos: number, siblings: TextNode[]) {
+    const index = siblings.indexOf(node);
+
+    if (cursorPos === node.text.length || cursorPos === 0) {
+      // No split needed, just add empty sibling
+      siblings.splice(index + 1, 0, {
+        id: `node-${this.nextId++}`,
+        text: '',
+        children: [],
+        isEditing: false,
+        cursorPosition: 0
+      });
+    } else {
+      // Split text: everything from cursor to end becomes new sibling
+      const remainingText = node.text.substring(cursorPos);
+      node.text = node.text.substring(0, cursorPos);
+
+      const newSibling: TextNode = {
+        id: `node-${this.nextId++}`,
+        text: remainingText.trim(),
+        children: [],
+        isEditing: false,
+        cursorPosition: 0
+      };
+
+      siblings.splice(index + 1, 0, newSibling);
     }
 
-    for (const section of sections) {
-      if (this.removeSectionFromTree(section.children, toRemove)) {
-        return true;
-      }
-    }
-    return false;
+    this.generateXML();
   }
 
-  moveUp(section: Section) {
-    // Find parent and move section up one level
-    const result = this.findSectionParent(this.sections, section, null);
-    if (result && result.parent) {
-      // Remove from current parent
-      result.parent.children = result.parent.children.filter(s => s.id !== section.id);
+  private mergeWithParent(node: TextNode, parent: TextNode, siblings: TextNode[]) {
+    // Remove node from siblings
+    const index = siblings.indexOf(node);
+    siblings.splice(index, 1);
 
-      // Find grandparent
-      const grandparentResult = this.findSectionParent(this.sections, result.parent, null);
+    // Append node's text to parent
+    parent.text = parent.text + ' ' + node.text;
 
-      if (grandparentResult && grandparentResult.parent) {
-        // Add to grandparent
-        grandparentResult.parent.children.push(section);
-        grandparentResult.parent.children.sort((a, b) => a.startIndex - b.startIndex);
-      } else {
-        // Add to root
-        this.sections.push(section);
-        this.sections.sort((a, b) => a.startIndex - b.startIndex);
-      }
+    // Move node's children to parent
+    parent.children.push(...node.children);
 
-      this.updateDepths();
+    this.generateXML();
+  }
+
+  private mergeWithPreviousSibling(node: TextNode, siblings: TextNode[]) {
+    const index = siblings.indexOf(node);
+
+    if (index > 0) {
+      const previousSibling = siblings[index - 1];
+
+      // Merge text
+      previousSibling.text = previousSibling.text + ' ' + node.text;
+
+      // Move children
+      previousSibling.children.push(...node.children);
+
+      // Remove current node
+      siblings.splice(index, 1);
+
       this.generateXML();
     }
   }
 
-  moveDown(section: Section) {
-    // Find the previous sibling and make this section its child
-    const result = this.findSectionParent(this.sections, section, null);
-    const siblings = result?.parent ? result.parent.children : this.sections;
-
-    const index = siblings.findIndex(s => s.id === section.id);
-    if (index > 0) {
-      const previousSibling = siblings[index - 1];
-
-      // Check if section is within bounds of previous sibling
-      if (section.startIndex >= previousSibling.startIndex &&
-          section.endIndex <= previousSibling.endIndex) {
-        // Remove from current level
-        siblings.splice(index, 1);
-
-        // Add to previous sibling's children
-        previousSibling.children.push(section);
-        previousSibling.children.sort((a, b) => a.startIndex - b.startIndex);
-
-        this.updateDepths();
-        this.generateXML();
-      } else {
-        alert('Cannot nest: section is outside the bounds of the previous section');
-      }
+  onLabelKeydown(event: KeyboardEvent, node: TextNode) {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      node.isEditing = false;
+      this.generateXML();
     }
   }
 
-  private findSectionParent(sections: Section[], target: Section, parent: Section | null): { section: Section, parent: Section | null } | null {
-    for (const section of sections) {
-      if (section.id === target.id) {
-        return { section, parent };
-      }
-
-      const result = this.findSectionParent(section.children, target, section);
-      if (result) {
-        return result;
-      }
-    }
-    return null;
+  onLabelBlur(node: TextNode) {
+    node.isEditing = false;
+    this.generateXML();
   }
 
-  private updateDepths() {
-    const update = (sections: Section[], depth: number) => {
-      for (const section of sections) {
-        section.depth = depth;
-        update(section.children, depth + 1);
+  startEditingLabel(event: Event, node: TextNode) {
+    event.stopPropagation();
+    node.isEditing = true;
+    setTimeout(() => {
+      const input = document.querySelector(`input[data-node-id="${node.id}"]`) as HTMLInputElement;
+      if (input) {
+        input.focus();
       }
-    };
-    update(this.sections, 0);
+    }, 0);
+  }
+
+  deleteNode(node: TextNode, siblings: TextNode[]) {
+    const index = siblings.indexOf(node);
+    if (index !== -1) {
+      siblings.splice(index, 1);
+      this.generateXML();
+    }
   }
 
   generateXML() {
-    this.xmlOutput = this.buildXML(this.sections, 0);
+    this.xmlOutput = this.buildXML(this.rootNodes, 0);
   }
 
-  private buildXML(sections: Section[], baseIndex: number, indent: number = 0): string {
+  private buildXML(nodes: TextNode[], indent: number = 0): string {
     let xml = '';
     const indentStr = '  '.repeat(indent);
 
-    let currentIndex = baseIndex;
-
-    for (const section of sections) {
-      // Add text before section
-      if (section.startIndex > currentIndex) {
-        const textBefore = this.hebrewText.substring(currentIndex, section.startIndex);
-        if (textBefore.trim()) {
-          xml += indentStr + this.escapeXml(textBefore.trim()) + '\n';
-        }
+    for (const node of nodes) {
+      // Skip completely empty nodes
+      if (!node.text.trim() && node.children.length === 0) {
+        continue;
       }
 
-      // Open section tag
-      const labelAttr = section.label ? ` label="${this.escapeXml(section.label)}"` : '';
-      xml += indentStr + `<section${labelAttr}>`;
+      const labelAttr = node.label ? ` label="${this.escapeXml(node.label)}"` : '';
 
-      if (section.children.length > 0) {
+      if (node.children.length > 0) {
+        xml += indentStr + `<section${labelAttr}>`;
+
+        if (node.text.trim()) {
+          xml += this.escapeXml(node.text.trim());
+        }
+
         xml += '\n';
-        // Add children recursively
-        xml += this.buildXML(section.children, section.startIndex, indent + 1);
-
-        // Add remaining text in this section after children
-        const lastChild = section.children[section.children.length - 1];
-        if (lastChild.endIndex < section.endIndex) {
-          const textAfter = this.hebrewText.substring(lastChild.endIndex, section.endIndex);
-          if (textAfter.trim()) {
-            xml += '  '.repeat(indent + 1) + this.escapeXml(textAfter.trim()) + '\n';
-          }
-        }
-        xml += indentStr;
+        xml += this.buildXML(node.children, indent + 1);
+        xml += indentStr + `</section>\n`;
       } else {
-        // No children, just add the text
-        const text = this.hebrewText.substring(section.startIndex, section.endIndex);
-        xml += this.escapeXml(text.trim());
-      }
-
-      xml += `</section>\n`;
-
-      currentIndex = section.endIndex;
-    }
-
-    // Add any remaining text
-    if (currentIndex < this.hebrewText.length && sections.length > 0) {
-      const parent = sections[0];
-      if (parent && currentIndex < this.hebrewText.length) {
-        const remainingText = this.hebrewText.substring(currentIndex);
-        if (remainingText.trim()) {
-          xml += indentStr + this.escapeXml(remainingText.trim()) + '\n';
+        // Leaf node
+        if (node.text.trim()) {
+          xml += indentStr + `<section${labelAttr}>`;
+          xml += this.escapeXml(node.text.trim());
+          xml += `</section>\n`;
         }
       }
-    } else if (sections.length === 0 && this.hebrewText.trim()) {
-      xml += indentStr + this.escapeXml(this.hebrewText.trim()) + '\n';
     }
 
     return xml;
@@ -276,14 +249,6 @@ export class TextSectionerComponent {
     });
   }
 
-  clearAll() {
-    if (confirm('Are you sure you want to clear all sections?')) {
-      this.sections = [];
-      this.xmlOutput = '';
-      this.nextId = 1;
-    }
-  }
-
   downloadXML() {
     const blob = new Blob([this.xmlOutput], { type: 'text/xml' });
     const url = window.URL.createObjectURL(blob);
@@ -292,5 +257,18 @@ export class TextSectionerComponent {
     a.download = 'hebrew-text-sections.xml';
     a.click();
     window.URL.revokeObjectURL(url);
+  }
+
+  clearAll() {
+    if (confirm('Are you sure you want to clear all sections?')) {
+      this.rootNodes = [{
+        id: `node-${this.nextId++}`,
+        text: '',
+        children: [],
+        isEditing: false,
+        cursorPosition: 0
+      }];
+      this.xmlOutput = '';
+    }
   }
 }
