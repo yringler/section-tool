@@ -1,0 +1,129 @@
+<div class="container">
+  <h1>Hebrew Text Sectioning Tool</h1>
+
+  <div class="main-grid">
+    <!-- Left Panel: Text Input and Controls -->
+    <div class="left-panel">
+      <div class="input-section">
+        <h2>Hebrew Text</h2>
+        <textarea
+          [(ngModel)]="hebrewText"
+          (select)="onTextSelect($event)"
+          class="hebrew-input"
+          placeholder="Paste your Hebrew text here..."
+          dir="rtl"
+        ></textarea>
+      </div>
+
+      <div class="controls-section">
+        <h3>Create Section</h3>
+
+        <div class="selected-text" *ngIf="selectedText">
+          <strong>Selected:</strong>
+          <div class="preview" dir="rtl">{{ selectedText }}</div>
+        </div>
+
+        <div class="form-group">
+          <label>Label (optional):</label>
+          <input
+            type="text"
+            [(ngModel)]="sectionLabel"
+            placeholder="e.g., פרק א, חלק ראשון"
+            dir="rtl"
+          />
+        </div>
+
+        <button
+          class="btn btn-primary"
+          (click)="addSection()"
+          [disabled]="!selectedText"
+        >
+          Add Section
+        </button>
+      </div>
+
+      <div class="sections-tree">
+        <h3>Section Hierarchy</h3>
+        <div class="tree">
+          <div *ngIf="sections.length === 0" class="empty-state">
+            No sections yet. Select text above and create a section.
+          </div>
+          <div *ngFor="let section of sections">
+            <div class="section-item" [style.margin-left.px]="0">
+              <span class="section-depth">Level {{ section.depth + 1 }}</span>
+              <span class="section-label" *ngIf="section.label" dir="rtl">{{ section.label }}</span>
+              <span class="section-preview" *ngIf="!section.label" dir="rtl">
+                {{ hebrewText.substring(section.startIndex, section.endIndex).substring(0, 30) }}...
+              </span>
+              <div class="section-actions">
+                <button
+                  class="btn-action"
+                  (click)="moveUp(section)"
+                  title="Move up one level (make less nested)"
+                  [disabled]="section.depth === 0"
+                >↑</button>
+                <button
+                  class="btn-action"
+                  (click)="moveDown(section)"
+                  title="Move down one level (make more nested)"
+                >↓</button>
+                <button class="btn-remove" (click)="removeSection(section)">×</button>
+              </div>
+            </div>
+            <div *ngIf="section.children.length > 0">
+              <ng-container *ngTemplateOutlet="sectionTree; context: {sections: section.children}"></ng-container>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel: XML Output -->
+    <div class="right-panel">
+      <div class="output-header">
+        <h2>XML Output</h2>
+        <div class="output-actions">
+          <button class="btn btn-secondary" (click)="copyXML()" [disabled]="!xmlOutput">
+            Copy
+          </button>
+          <button class="btn btn-secondary" (click)="downloadXML()" [disabled]="!xmlOutput">
+            Download
+          </button>
+          <button class="btn btn-danger" (click)="clearAll()" [disabled]="sections.length === 0">
+            Clear All
+          </button>
+        </div>
+      </div>
+      <pre class="xml-output" dir="ltr">{{ xmlOutput || 'XML will appear here...' }}</pre>
+    </div>
+  </div>
+</div>
+
+<!-- Recursive template for nested sections -->
+<ng-template #sectionTree let-sections="sections">
+  <div *ngFor="let section of sections">
+    <div class="section-item" [style.margin-left.px]="section.depth * 20">
+      <span class="section-depth">Level {{ section.depth + 1 }}</span>
+      <span class="section-label" *ngIf="section.label" dir="rtl">{{ section.label }}</span>
+      <span class="section-preview" *ngIf="!section.label" dir="rtl">
+        {{ hebrewText.substring(section.startIndex, section.endIndex).substring(0, 30) }}...
+      </span>
+      <div class="section-actions">
+        <button
+          class="btn-action"
+          (click)="moveUp(section)"
+          title="Move up one level (make less nested)"
+        >↑</button>
+        <button
+          class="btn-action"
+          (click)="moveDown(section)"
+          title="Move down one level (make more nested)"
+        >↓</button>
+        <button class="btn-remove" (click)="removeSection(section)">×</button>
+      </div>
+    </div>
+    <div *ngIf="section.children.length > 0">
+      <ng-container *ngTemplateOutlet="sectionTree; context: {sections: section.children}"></ng-container>
+    </div>
+  </div>
+</ng-template>
