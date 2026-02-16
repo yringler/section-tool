@@ -69,6 +69,15 @@
   direction: rtl;
   line-height: 1.6;
   margin-bottom: 8px;
+
+  /* Auto-grow up to 10 lines before scrolling */
+  height: auto;
+  min-height: 4.8em;  /* ~3 lines minimum (1.6 line-height × 3) */
+  max-height: 16em;   /* ~10 lines maximum (1.6 line-height × 10) */
+  overflow-y: auto;
+
+  /* Modern browsers: auto-grow based on content */
+  field-sizing: content;
 }
 
 .text-area:focus {
