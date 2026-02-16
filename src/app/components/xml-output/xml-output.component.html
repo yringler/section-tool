@@ -1,0 +1,11 @@
+<div class="xml-output">
+  <div class="output-header">
+    <h3>XML Output</h3>
+    <div class="output-actions">
+      <button class="action-btn" (click)="onCopy()" title="Copy to clipboard">Copy</button>
+      <button class="action-btn" (click)="onDownload()" title="Download as .xml">Download</button>
+      <button class="action-btn danger" (click)="onClear()" title="Clear all sections">Clear</button>
+    </div>
+  </div>
+  <pre class="xml-content" dir="rtl">{{ xmlContent() || 'No content yet...' }}</pre>
+</div>

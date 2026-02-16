@@ -1,0 +1,82 @@
+.text-node {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 8px;
+}
+
+.node-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.level-badge {
+  background: #e3f2fd;
+  color: #1565c0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+
+.label-input {
+  flex: 1;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 0.875rem;
+  direction: rtl;
+  background: transparent;
+  transition: border-color 0.2s;
+}
+
+.label-input:hover,
+.label-input:focus {
+  border-color: #ccc;
+  outline: none;
+  background: #fafafa;
+}
+
+.delete-btn {
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: #999;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0 6px;
+  line-height: 1;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.delete-btn:hover {
+  color: #e53935;
+  border-color: #e53935;
+}
+
+.text-area {
+  width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 8px;
+  font-family: inherit;
+  font-size: 1rem;
+  resize: vertical;
+  direction: rtl;
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+
+.text-area:focus {
+  outline: none;
+  border-color: #1565c0;
+  box-shadow: 0 0 0 2px rgba(21, 101, 192, 0.15);
+}
+
+.text-area::placeholder {
+  color: #bbb;
+}

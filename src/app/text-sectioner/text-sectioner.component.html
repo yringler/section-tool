@@ -1,0 +1,35 @@
+<div class="container">
+  <header class="app-header">
+    <h1>Hebrew Text Sectioning Tool</h1>
+    <p class="subtitle">
+      <kbd>Enter</kbd> child &middot;
+      <kbd>Tab</kbd> sibling &middot;
+      <kbd>Shift+Enter</kbd> merge parent &middot;
+      <kbd>Shift+Tab</kbd> merge prev
+    </p>
+  </header>
+
+  <div class="main-layout">
+    <div class="editor-panel">
+      @for (node of rootNodes(); track node.id) {
+        <app-text-node
+          [node]="node"
+          [level]="1"
+          (nodeKeydown)="onNodeKeydown($event)"
+          (textChange)="onTextChange($event)"
+          (labelChange)="onLabelChange($event)"
+          (deleteNode)="onDeleteNode($event)"
+        />
+      }
+    </div>
+
+    <div class="output-panel">
+      <app-xml-output
+        [xmlContent]="xmlOutput()"
+        (copyRequest)="onCopy()"
+        (downloadRequest)="onDownload()"
+        (clearRequest)="onClear()"
+      />
+    </div>
+  </div>
+</div>

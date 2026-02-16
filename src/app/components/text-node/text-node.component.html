@@ -1,0 +1,35 @@
+<div class="text-node" [style.margin-right.px]="(level() - 1) * 24">
+  <div class="node-header">
+    <span class="level-badge">Level {{ level() }}</span>
+    <input
+      class="label-input"
+      type="text"
+      [value]="node().label"
+      (input)="onLabelInput($event)"
+      placeholder="Click to add label"
+    />
+    <button class="delete-btn" (click)="onDelete()" title="Delete section">&times;</button>
+  </div>
+  <textarea
+    class="text-area"
+    dir="rtl"
+    [attr.data-node-id]="node().id"
+    [value]="node().text"
+    (input)="onTextInput($event)"
+    (keydown)="onKeydown($event, textarea)"
+    #textarea
+    rows="3"
+    placeholder="Enter text here..."
+  ></textarea>
+
+  @for (child of node().children; track child.id) {
+    <app-text-node
+      [node]="child"
+      [level]="level() + 1"
+      (nodeKeydown)="onChildKeydown($event)"
+      (textChange)="onChildTextChange($event)"
+      (labelChange)="onChildLabelChange($event)"
+      (deleteNode)="onChildDelete($event)"
+    />
+  }
+</div>
