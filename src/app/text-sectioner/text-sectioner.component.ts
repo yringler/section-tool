@@ -69,4 +69,12 @@ export class TextSectionerComponent {
   onClear(): void {
     this.service.clearAll();
   }
+
+  onLoad(xmlContent: string): void {
+    try {
+      this.service.loadFromXml(xmlContent);
+    } catch (error) {
+      alert('Failed to load XML: ' + (error instanceof Error ? error.message : 'Invalid XML format'));
+    }
+  }
 }

@@ -1,8 +1,11 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
 import { TextNode } from '../models/text-node.model';
+import { XmlParserService } from './xml-parser.service';
 
 @Injectable({ providedIn: 'root' })
 export class TextSectionService {
+  private xmlParser = inject(XmlParserService);
+
   readonly rootNodes = signal<TextNode[]>([this.createNode('')]);
 
   readonly xmlOutput = computed(() => this.nodesToXml(this.rootNodes(), 0));
@@ -172,6 +175,21 @@ export class TextSectionService {
 
   clearAll(): void {
     this.rootNodes.set([this.createNode('')]);
+  }
+
+  loadFromXml(xmlString: string): void {
+    try {
+      const nodes = this.xmlParser.parseXml(xmlString);
+      if (nodes.length > 0) {
+        this.rootNodes.set(nodes);
+      } else {
+        // If parsing resulted in no nodes, reset to default
+        this.rootNodes.set([this.createNode('')]);
+      }
+    } catch (error) {
+      console.error('Failed to load XML:', error);
+      throw error;
+    }
   }
 
   private isTextNode(item: TextNode | string): item is TextNode {

@@ -61,6 +61,7 @@
 wa-textarea.text-area {
   width: 100%;
   margin-bottom: 8px;
+  display: block;
 
   /* Web Awesome textarea will auto-resize with resize="auto" */
   --wa-input-font-family: inherit;
@@ -70,9 +71,25 @@ wa-textarea.text-area {
   --wa-input-border-radius-medium: 4px;
   --wa-input-border-color-focus: #1565c0;
   --wa-input-focus-ring-color: rgba(21, 101, 192, 0.15);
+
+  /* Force GPU acceleration for stable rendering */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+wa-textarea.text-area::part(form-control) {
+  /* Prevent parent container from shifting */
+  contain: layout style;
 }
 
 wa-textarea.text-area::part(textarea) {
   max-height: 20em;
-  overflow: scroll;
+  overflow-y: auto !important;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  /* Prevent subpixel rendering issues */
+  line-height: 1.6;
+  min-height: 2.6em;
+  /* Force integer pixel boundaries */
+  transform: translate3d(0, 0, 0);
 }

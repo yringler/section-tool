@@ -2,10 +2,29 @@
   <div class="output-header">
     <h3>XML Output</h3>
     <div class="output-actions">
-      <button class="action-btn" (click)="onCopy()" title="Copy to clipboard">Copy</button>
-      <button class="action-btn" (click)="onDownload()" title="Download as .xml">Download</button>
+      <button class="action-btn" (click)="onLoadFileClick()" title="Load XML file">Load</button>
+      <button class="action-btn" (click)="onCopy()" [disabled]="!xmlContent()" title="Copy to clipboard">Copy</button>
+      <button class="action-btn" (click)="onDownload()" [disabled]="!xmlContent()" title="Download as .xml">Download</button>
       <button class="action-btn danger" (click)="onClear()" title="Clear all sections">Clear</button>
     </div>
   </div>
-  <pre class="xml-content" dir="rtl">{{ xmlContent() || 'No content yet...' }}</pre>
+  <input
+    #fileInput
+    type="file"
+    accept=".xml,text/xml,application/xml"
+    (change)="onFileSelected($event)"
+    style="display: none;"
+  />
+  @if (xmlContent()) {
+    <pre class="xml-content" dir="rtl">{{ xmlContent() }}</pre>
+  } @else {
+    <div
+      class="xml-content empty-state"
+      contenteditable="true"
+      (paste)="onPaste($event)"
+      dir="rtl"
+    >
+      <span class="placeholder">Paste XML here or click Load to open a file...</span>
+    </div>
+  }
 </div>

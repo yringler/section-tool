@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, input, output, ElementRef, viewChild } from '@angular/core';
 
 @Component({
   selector: 'app-xml-output',
@@ -12,6 +12,9 @@ export class XmlOutputComponent {
   copyRequest = output<void>();
   downloadRequest = output<void>();
   clearRequest = output<void>();
+  loadRequest = output<string>();
+
+  fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');
 
   onCopy(): void {
     this.copyRequest.emit();
@@ -23,5 +26,32 @@ export class XmlOutputComponent {
 
   onClear(): void {
     this.clearRequest.emit();
+  }
+
+  onLoadFileClick(): void {
+    this.fileInput()?.nativeElement.click();
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const xmlContent = e.target?.result as string;
+        this.loadRequest.emit(xmlContent);
+      };
+      reader.readAsText(file);
+      // Reset input so same file can be loaded again
+      input.value = '';
+    }
+  }
+
+  onPaste(event: ClipboardEvent): void {
+    event.preventDefault();
+    const xmlContent = event.clipboardData?.getData('text') || '';
+    if (xmlContent.trim()) {
+      this.loadRequest.emit(xmlContent);
+    }
   }
 }
