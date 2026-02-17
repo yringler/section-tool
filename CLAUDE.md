@@ -99,7 +99,9 @@ src/app/
 │   └── text-node.model.ts           # Core data model
 ├── services/
 │   ├── text-section.service.ts      # State management (signals)
-│   └── text-section.service.spec.ts # Service tests (44 tests)
+│   ├── text-section.service.spec.ts # Service tests (47 tests)
+│   ├── xml-parser.service.ts        # XML parsing and loading
+│   └── xml-parser.service.spec.ts   # Parser tests (12 tests)
 ├── components/
 │   ├── text-node/                   # Recursive node component
 │   │   ├── text-node.component.ts
@@ -123,7 +125,7 @@ src/app/
 2. **Update the service** - Add/modify methods in `TextSectionService`
 3. **Write tests first** - Update `text-section.service.spec.ts` with expected behavior
 4. **Update components** - Modify components to use new service methods
-5. **Run tests** - Ensure all 44 tests pass: `npm test`
+5. **Run tests** - Ensure all 59 tests pass: `npm test`
 
 ### Testing Requirements
 
@@ -227,18 +229,36 @@ Generated XML uses:
 - Escaped special characters (&, <, >, ")
 - Trimmed text content
 - Skipped empty nodes
+- **Root wrapper**: Always wrapped in a root `<section>` element for valid XML
 
 **Example**:
 ```xml
-<section label="Chapter 1">
-  Introduction text
-  <section label="Section 1.1">
-    Section content
-    <section>Subsection content</section>
+<section>
+  <section label="Chapter 1">
+    Introduction text
+    <section label="Section 1.1">
+      Section content
+      <section>Subsection content</section>
+    </section>
+    Conclusion text
   </section>
-  Conclusion text
 </section>
 ```
+
+### XML Parsing (Loading)
+
+When XML is loaded/pasted:
+- The parser automatically **unwraps** a wrapper root `<section>` (no label, no text content)
+- This ensures roundtrip compatibility: generate → copy → paste → edit → generate
+- Root sections with labels or text content are preserved as actual content nodes
+- This allows users to paste generated XML without creating double-wrapped structures
+
+### Blank XML for Empty State
+
+When the application is in its initial state (single empty node with no content):
+- `xmlOutput()` returns an empty string `''`
+- This allows users to paste XML directly without clearing first
+- Once any content is added, normal XML output is generated
 
 ## When Making Changes
 
@@ -258,6 +278,13 @@ Generated XML uses:
 These are implemented in `text-sectioner.component.ts` via the `onNodeKeydown()` handler.
 
 ## Recent Changes
+
+**2026-02-17**: Added root XML wrapper for valid XML output
+- XML output now always wrapped in root `<section>` element (when not empty)
+- Empty default state returns blank XML for easy pasting
+- Parser automatically unwraps wrapper roots when loading
+- Added 12 tests for XML parser (59 total tests)
+- Ensures roundtrip compatibility
 
 **2026-02-16**: Implemented interleaved text and children support
 - Changed `children: TextNode[]` to `children: (TextNode | string)[]`

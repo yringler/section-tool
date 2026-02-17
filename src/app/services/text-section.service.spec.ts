@@ -361,7 +361,7 @@ describe('TextSectionService', () => {
       service.rootNodes.set([root]);
 
       const xml = service.xmlOutput();
-      expect(xml).toBe('<section>Hello World</section>');
+      expect(xml).toBe('<section>\n  <section>Hello World</section>\n</section>');
     });
 
     it('should generate XML with label attribute', () => {
@@ -370,7 +370,7 @@ describe('TextSectionService', () => {
       service.rootNodes.set([root]);
 
       const xml = service.xmlOutput();
-      expect(xml).toBe('<section label="Chapter 1">Content</section>');
+      expect(xml).toBe('<section>\n  <section label="Chapter 1">Content</section>\n</section>');
     });
 
     it('should generate nested XML', () => {
@@ -393,18 +393,39 @@ describe('TextSectionService', () => {
       service.rootNodes.set([root]);
 
       const xml = service.xmlOutput();
-      expect(xml).toBe('<section>Text with &lt;tag&gt; &amp; &quot;quotes&quot;</section>');
+      expect(xml).toBe('<section>\n  <section>Text with &lt;tag&gt; &amp; &quot;quotes&quot;</section>\n</section>');
     });
 
-    it('should handle multiple root nodes', () => {
+    it('should handle multiple root nodes wrapped in root section', () => {
       service.clearAll();
       const root1 = service.createNode('First');
       const root2 = service.createNode('Second');
       service.rootNodes.set([root1, root2]);
 
       const xml = service.xmlOutput();
-      expect(xml).toContain('<section>First</section>');
-      expect(xml).toContain('<section>Second</section>');
+      // Should start with root section
+      expect(xml.startsWith('<section>\n')).toBe(true);
+      expect(xml.endsWith('\n</section>')).toBe(true);
+      expect(xml).toContain('  <section>First</section>');
+      expect(xml).toContain('  <section>Second</section>');
+    });
+
+    it('should produce valid XML with single root element', () => {
+      service.clearAll();
+      const root1 = service.createNode('First');
+      const root2 = service.createNode('Second');
+      service.rootNodes.set([root1, root2]);
+
+      const xml = service.xmlOutput();
+      // Count opening and closing section tags
+      const openTags = (xml.match(/<section/g) || []).length;
+      const closeTags = (xml.match(/<\/section>/g) || []).length;
+      expect(openTags).toBe(closeTags);
+
+      // Verify it starts and ends with a single root
+      const lines = xml.split('\n').filter(l => l.trim());
+      expect(lines[0]).toBe('<section>');
+      expect(lines[lines.length - 1]).toBe('</section>');
     });
 
     it('should skip empty nodes without children', () => {
@@ -414,7 +435,7 @@ describe('TextSectionService', () => {
       service.rootNodes.set([root1, root2]);
 
       const xml = service.xmlOutput();
-      expect(xml).toBe('<section>Content</section>');
+      expect(xml).toBe('<section>\n  <section>Content</section>\n</section>');
     });
 
     it('should trim whitespace in text nodes', () => {
@@ -423,7 +444,7 @@ describe('TextSectionService', () => {
       service.rootNodes.set([root]);
 
       const xml = service.xmlOutput();
-      expect(xml).toBe('<section>Text with spaces</section>');
+      expect(xml).toBe('<section>\n  <section>Text with spaces</section>\n</section>');
     });
 
     it('should handle complex nested structure', () => {
@@ -452,10 +473,12 @@ describe('TextSectionService', () => {
 
       const xml = service.xmlOutput();
       const lines = xml.split('\n');
-      expect(lines[0]).toBe('<section label="R">');
-      expect(lines[1]).toBe('  Root');
-      expect(lines[2]).toBe('  <section>Child</section></section>');
-      expect(lines.length).toBe(3);
+      expect(lines[0]).toBe('<section>');
+      expect(lines[1]).toBe('  <section label="R">');
+      expect(lines[2]).toBe('    Root');
+      expect(lines[3]).toBe('    <section>Child</section></section>');
+      expect(lines[4]).toBe('</section>');
+      expect(lines.length).toBe(5);
     });
 
     it('should render parent text before children, with multiple children', () => {
@@ -523,11 +546,30 @@ describe('TextSectionService', () => {
       service.rootNodes.set([root]);
 
       const xml1 = service.xmlOutput();
-      expect(xml1).toBe('<section>Initial</section>');
+      expect(xml1).toBe('<section>\n  <section>Initial</section>\n</section>');
 
       service.updateNodeText(root.id, 0, 'Updated');
       const xml2 = service.xmlOutput();
-      expect(xml2).toBe('<section>Updated</section>');
+      expect(xml2).toBe('<section>\n  <section>Updated</section>\n</section>');
+    });
+
+    it('should return blank XML for default empty state', () => {
+      service.clearAll();
+      // Default state is one empty node
+      const xml = service.xmlOutput();
+      expect(xml).toBe('');
+    });
+
+    it('should return XML once content is added to default node', () => {
+      service.clearAll();
+      const root = service.rootNodes()[0];
+
+      // Initially blank
+      expect(service.xmlOutput()).toBe('');
+
+      // Add content
+      service.updateNodeText(root.id, 0, 'Hello');
+      expect(service.xmlOutput()).toBe('<section>\n  <section>Hello</section>\n</section>');
     });
   });
 });

@@ -8,7 +8,20 @@ export class TextSectionService {
 
   readonly rootNodes = signal<TextNode[]>([this.createNode('')]);
 
-  readonly xmlOutput = computed(() => this.nodesToXml(this.rootNodes(), 0));
+  readonly xmlOutput = computed(() => {
+    const roots = this.rootNodes();
+
+    // If there's only one root with no label and only empty text, return blank
+    if (roots.length === 1 && !roots[0].label) {
+      const onlyChild = roots[0].children.length === 1 && roots[0].children[0];
+      if (typeof onlyChild === 'string' && !onlyChild.trim()) {
+        return '';
+      }
+    }
+
+    const innerXml = this.nodesToXml(roots, 1);
+    return innerXml ? `<section>\n${innerXml}\n</section>` : '';
+  });
 
   createNode(text: string = '', label = ''): TextNode {
     return {

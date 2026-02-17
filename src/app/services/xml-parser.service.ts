@@ -24,16 +24,35 @@ export class XmlParserService {
         throw new Error('Invalid XML: ' + parserError.textContent);
       }
 
+      // If the root element is a section, unwrap it to get its children
+      if (doc.documentElement.tagName.toLowerCase() === 'section') {
+        const rootElement = doc.documentElement;
+
+        // Check if this is a wrapper root (no label, only contains sections)
+        const hasLabel = rootElement.getAttribute('label');
+        const textContent = Array.from(rootElement.childNodes)
+          .filter(n => n.nodeType === Node.TEXT_NODE)
+          .map(n => n.textContent?.trim() || '')
+          .join('');
+        const childSections = Array.from(rootElement.children).filter(
+          (el) => el.tagName.toLowerCase() === 'section'
+        );
+
+        // If it's a wrapper root (no label, no text, only child sections), unwrap it
+        if (!hasLabel && !textContent && childSections.length > 0) {
+          return childSections.map((el) => this.parseSection(el as Element));
+        }
+
+        // Otherwise treat it as a content root
+        return [this.parseSection(rootElement)];
+      }
+
       // Get all top-level section elements
       const rootSections = Array.from(doc.documentElement.children).filter(
         (el) => el.tagName.toLowerCase() === 'section'
       );
 
       if (rootSections.length === 0) {
-        // If the root is a section itself, use it
-        if (doc.documentElement.tagName.toLowerCase() === 'section') {
-          return [this.parseSection(doc.documentElement as Element)];
-        }
         throw new Error('No section elements found in XML');
       }
 
