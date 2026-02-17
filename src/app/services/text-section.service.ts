@@ -113,6 +113,58 @@ export class TextSectionService {
     return newId;
   }
 
+  /** Split text from cursor to end into a new sibling of this node's parent (promote one level) */
+  splitToParentSibling(nodeId: string, contentIndex: number, cursorPos: number): string | null {
+    const roots = this.rootNodes();
+    const parent = this.findParent(nodeId, roots);
+    if (!parent) return null; // Node is root-level, can't promote above root
+
+    const grandparent = this.findParent(parent.id, roots);
+    const grandparentChildren = grandparent ? grandparent.children : roots;
+
+    const node = this.findNode(nodeId, roots);
+    if (!node) return null;
+
+    const item = node.children[contentIndex];
+    if (typeof item !== 'string') return null;
+
+    // Split text at cursor
+    const beforeCursor = item.substring(0, cursorPos);
+    const afterCursor = item.substring(cursorPos);
+
+    // Keep beforeCursor in current node
+    node.children[contentIndex] = beforeCursor;
+
+    // Collect trailing content (everything after contentIndex in this node)
+    const trailingContent = node.children.splice(contentIndex + 1);
+
+    // Collect later siblings from parent (everything after this node in the parent)
+    const nodeIndexInParent = parent.children.findIndex(
+      c => this.isTextNode(c) && c.id === nodeId
+    );
+    const laterSiblings = nodeIndexInParent !== -1
+      ? parent.children.splice(nodeIndexInParent + 1)
+      : [];
+
+    // Create new node with afterCursor + trailing content + later siblings
+    const newNode: TextNode = {
+      id: crypto.randomUUID(),
+      label: '',
+      children: [afterCursor, ...trailingContent, ...laterSiblings],
+    };
+
+    // Insert new node after parent in grandparent's children
+    const parentIndex = grandparentChildren.findIndex(
+      c => this.isTextNode(c) && c.id === parent.id
+    );
+    if (parentIndex !== -1) {
+      grandparentChildren.splice(parentIndex + 1, 0, newNode);
+    }
+
+    this.rootNodes.set([...roots]);
+    return newNode.id;
+  }
+
   /** Merge this node's text back into its parent */
   mergeWithParent(nodeId: string): string | null {
     const roots = this.rootNodes();

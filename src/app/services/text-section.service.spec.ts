@@ -296,6 +296,162 @@ describe('TextSectionService', () => {
     });
   });
 
+  describe('splitToParentSibling', () => {
+    it('should split text and promote after-cursor to grandparent level', () => {
+      const root = service.rootNodes()[0];
+      const child = service.createNode('Hello World');
+      root.children = ['', child];
+      service.rootNodes.set([root]);
+
+      const newId = service.splitToParentSibling(child.id, 0, 5);
+
+      expect(newId).toBeTruthy();
+      // Child should keep "Hello"
+      const updatedRoot = service.rootNodes()[0];
+      expect((updatedRoot.children[1] as TextNode).children[0]).toBe('Hello');
+      // New node should be a sibling of root with " World"
+      const roots = service.rootNodes();
+      expect(roots).toHaveLength(2);
+      expect((roots[1] as TextNode).children[0]).toBe(' World');
+    });
+
+    it('should return null when node is at root level', () => {
+      const root = service.rootNodes()[0];
+      service.updateNodeText(root.id, 0, 'Some text');
+
+      const result = service.splitToParentSibling(root.id, 0, 4);
+
+      expect(result).toBeNull();
+    });
+
+    it('should handle cursor at start (all text moves up)', () => {
+      const root = service.rootNodes()[0];
+      const child = service.createNode('All text moves');
+      root.children = ['', child];
+      service.rootNodes.set([root]);
+
+      const newId = service.splitToParentSibling(child.id, 0, 0);
+
+      expect(newId).toBeTruthy();
+      const updatedRoot = service.rootNodes()[0];
+      expect((updatedRoot.children[1] as TextNode).children[0]).toBe('');
+      const roots = service.rootNodes();
+      expect((roots[1] as TextNode).children[0]).toBe('All text moves');
+    });
+
+    it('should handle cursor at end (empty node created at parent level)', () => {
+      const root = service.rootNodes()[0];
+      const child = service.createNode('Keep this');
+      root.children = ['', child];
+      service.rootNodes.set([root]);
+
+      const newId = service.splitToParentSibling(child.id, 0, 9);
+
+      expect(newId).toBeTruthy();
+      const updatedRoot = service.rootNodes()[0];
+      expect((updatedRoot.children[1] as TextNode).children[0]).toBe('Keep this');
+      const roots = service.rootNodes();
+      expect((roots[1] as TextNode).children[0]).toBe('');
+    });
+
+    it('should carry trailing content into the new node', () => {
+      const root = service.rootNodes()[0];
+      const child = service.createNode('First segment');
+      const grandchild = service.createNode('Grandchild text');
+      child.children.push(grandchild, 'Trailing text');
+      root.children = ['', child];
+      service.rootNodes.set([root]);
+
+      const newId = service.splitToParentSibling(child.id, 0, 5);
+
+      expect(newId).toBeTruthy();
+      // Child should keep "First" only
+      const updatedRoot = service.rootNodes()[0];
+      const updatedChild = updatedRoot.children[1] as TextNode;
+      expect(updatedChild.children).toHaveLength(1);
+      expect(updatedChild.children[0]).toBe('First');
+
+      // New node should have " segment", grandchild, and trailing text
+      const roots = service.rootNodes();
+      const newNode = roots[1] as TextNode;
+      expect(newNode.children).toHaveLength(3);
+      expect(newNode.children[0]).toBe(' segment');
+      expect((newNode.children[1] as TextNode).children[0]).toBe('Grandchild text');
+      expect(newNode.children[2]).toBe('Trailing text');
+    });
+
+    it('should work with deeply nested nodes (parent is not root-level)', () => {
+      const root = service.rootNodes()[0];
+      const child = service.createNode('');
+      const grandchild = service.createNode('Deep text');
+      child.children = ['', grandchild];
+      root.children = ['', child];
+      service.rootNodes.set([root]);
+
+      const newId = service.splitToParentSibling(grandchild.id, 0, 4);
+
+      expect(newId).toBeTruthy();
+      // Grandchild keeps "Deep"
+      const updatedChild = service.rootNodes()[0].children[1] as TextNode;
+      expect((updatedChild.children[1] as TextNode).children[0]).toBe('Deep');
+      // New node " text" should be inserted after child in root's children
+      const updatedRoot = service.rootNodes()[0];
+      expect(updatedRoot.children).toHaveLength(3);
+      expect((updatedRoot.children[2] as TextNode).children[0]).toBe(' text');
+    });
+
+    it('should move later siblings from parent into the new promoted node', () => {
+      const root = service.rootNodes()[0];
+      const child1 = service.createNode('Promote me');
+      const child2 = service.createNode('Later sibling');
+      const child3 = service.createNode('Another sibling');
+      root.children = ['', child1, child2, child3];
+      service.rootNodes.set([root]);
+
+      const newId = service.splitToParentSibling(child1.id, 0, 7);
+
+      expect(newId).toBeTruthy();
+      // child1 keeps "Promote"
+      const updatedRoot = service.rootNodes()[0];
+      expect((updatedRoot.children[1] as TextNode).children[0]).toBe('Promote');
+      // child2 and child3 should no longer be in root
+      expect(updatedRoot.children).toHaveLength(2); // '' and child1
+
+      // New promoted node should contain " me" + child2 + child3
+      const roots = service.rootNodes();
+      expect(roots).toHaveLength(2);
+      const newNode = roots[1] as TextNode;
+      expect(newNode.children[0]).toBe(' me');
+      expect((newNode.children[1] as TextNode).children[0]).toBe('Later sibling');
+      expect((newNode.children[2] as TextNode).children[0]).toBe('Another sibling');
+    });
+
+    it('should move later siblings including text strings from parent into promoted node', () => {
+      const root = service.rootNodes()[0];
+      const child1 = service.createNode('Split here');
+      const child2 = service.createNode('Later child');
+      root.children = ['Before', child1, 'Between', child2, 'After'];
+      service.rootNodes.set([root]);
+
+      const newId = service.splitToParentSibling(child1.id, 0, 5);
+
+      expect(newId).toBeTruthy();
+      // root keeps 'Before' and child1 with "Split"
+      const updatedRoot = service.rootNodes()[0];
+      expect(updatedRoot.children).toHaveLength(2); // 'Before', child1
+      expect(updatedRoot.children[0]).toBe('Before');
+      expect((updatedRoot.children[1] as TextNode).children[0]).toBe('Split');
+
+      // New node gets " here", "Between", child2, "After"
+      const roots = service.rootNodes();
+      const newNode = roots[1] as TextNode;
+      expect(newNode.children[0]).toBe(' here');
+      expect(newNode.children[1]).toBe('Between');
+      expect((newNode.children[2] as TextNode).children[0]).toBe('Later child');
+      expect(newNode.children[3]).toBe('After');
+    });
+  });
+
   describe('deleteNode', () => {
     it('should delete root node', () => {
       const root1 = service.createNode('First');

@@ -20,7 +20,9 @@ export class TextSectionerComponent {
     const { nodeId, contentIndex, event: keyEvent, cursorPos } = event;
     let focusId: string | null = null;
 
-    if (keyEvent.key === 'Enter' && !keyEvent.shiftKey) {
+    if (keyEvent.key === 'Enter' && keyEvent.altKey) {
+      focusId = this.service.splitToParentSibling(nodeId, contentIndex, cursorPos);
+    } else if (keyEvent.key === 'Enter' && !keyEvent.shiftKey) {
       focusId = this.service.splitToChild(nodeId, contentIndex, cursorPos);
     } else if (keyEvent.key === 'Tab' && !keyEvent.shiftKey) {
       focusId = this.service.splitToSibling(nodeId, contentIndex, cursorPos);

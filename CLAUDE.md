@@ -272,6 +272,7 @@ When the application is in its initial state (single empty node with no content)
 
 - **Enter**: Split into child section
 - **Tab**: Split into sibling section
+- **Alt+Enter**: Split and promote to parent's sibling (one level up)
 - **Shift+Enter**: Merge with parent
 - **Shift+Tab**: Merge with previous sibling
 
