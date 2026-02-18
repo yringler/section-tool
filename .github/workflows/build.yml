@@ -1,0 +1,75 @@
+name: Build and Deploy to Blog
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # Manual trigger for testing
+
+jobs:
+  build-and-trigger:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Needed to create/update releases
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Angular app
+        run: |
+          npx ng build --configuration production --base-href /section-tool/
+          echo "✅ Build complete"
+          ls -la dist/*/browser/
+
+      # ── Package the build output ──
+
+      - name: Create release tarball
+        run: |
+          cd dist/hebrew-section-tool/browser
+          tar -czf "${{ github.workspace }}/angular-dist.tar.gz" .
+          echo "✅ Tarball created ($(du -h "${{ github.workspace }}/angular-dist.tar.gz" | cut -f1))"
+
+      # ── Publish to a rolling release ──
+      #
+      # This creates or updates a release tagged 'latest-build'.
+      # The tag is force-moved to the current commit each time.
+      # The tarball asset is replaced with the new build.
+      # Unlike workflow artifacts, releases never expire.
+
+      - name: Delete existing release (if any)
+        run: gh release delete latest-build --yes --cleanup-tag || true
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Create release with build artifact
+        run: |
+          gh release create latest-build \
+            angular-dist.tar.gz \
+            --title "Latest Build" \
+            --notes "Auto-generated from commit ${{ github.sha }} on $(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            --prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      # ── Trigger the blog repo to deploy the combined site ──
+
+      - name: Trigger blog deployment
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.CROSS_REPO_PAT }}
+          repository: yringler/yringler.github.io
+          event-type: angular-app-updated
+          client-payload: >-
+            {
+              "repo": "${{ github.repository }}",
+              "sha": "${{ github.sha }}"
+            }
