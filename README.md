@@ -49,32 +49,6 @@ Open your browser at `http://localhost:4200/`
 - **Progressive Division**: As you split text, each piece gets its own text input
 - **Labels**: Click "Click to add label" to name any section
 
-### Example Workflow
-
-Starting with:
-```
-פרק ראשון: בראשית
-בתחילה ברא אלוהים את השמים ואת הארץ
-פרק שני: נח
-ויהי נח איש צדיק
-```
-
-1. Place cursor before "בתחילה"
-2. Press **Enter** → Creates child with "בתחילה ברא..."
-3. In the new child, place cursor before "פרק שני"
-4. Press **Tab** → Creates sibling with "פרק שני..."
-5. Add labels to sections as needed
-
-Result:
-```xml
-<section label="פרק ראשון: בראשית">
-  <section>בתחילה ברא אלוהים את השמים ואת הארץ</section>
-</section>
-<section label="פרק שני: נח">
-  <section>ויהי נח איש צדיק</section>
-</section>
-```
-
 ## Keyboard Shortcuts
 
 | Shortcut | Action |
