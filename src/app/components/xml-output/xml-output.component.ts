@@ -52,6 +52,7 @@ export class XmlOutputComponent {
     const xmlContent = event.clipboardData?.getData('text') || '';
     if (xmlContent.trim()) {
       this.loadRequest.emit(xmlContent);
+      (event.target as HTMLTextAreaElement).value = '';
     }
   }
 }

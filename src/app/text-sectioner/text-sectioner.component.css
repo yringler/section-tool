@@ -54,7 +54,7 @@ kbd {
 
 .main-layout {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 220px;
   gap: 24px;
   align-items: start;
 }
@@ -68,5 +68,4 @@ kbd {
 .output-panel {
   position: sticky;
   top: 20px;
-  min-height: 300px;
 }
