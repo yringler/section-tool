@@ -109,6 +109,30 @@ describe('XmlParserService', () => {
       expect(nodes[1].children).toEqual(['Second']);
     });
 
+    it('should parse translation element', () => {
+      const xml = '<section label="Chapter 1">Hebrew text<translation>English translation</translation></section>';
+      const nodes = service.parseXml(xml);
+
+      expect(nodes[0].label).toBe('Chapter 1');
+      expect(nodes[0].translation).toBe('English translation');
+    });
+
+    it('should parse translation in nested section', () => {
+      const xml = `<section label="Parent"><section label="Child">Child text<translation>Child translation</translation></section></section>`;
+      const nodes = service.parseXml(xml);
+
+      const child = nodes[0].children[0] as any;
+      expect(child.label).toBe('Child');
+      expect(child.translation).toBe('Child translation');
+    });
+
+    it('should not set translation when no translation element', () => {
+      const xml = '<section>Hebrew text</section>';
+      const nodes = service.parseXml(xml);
+
+      expect(nodes[0].translation).toBeUndefined();
+    });
+
     it('should ensure at least one child in empty sections', () => {
       const xml = '<section label="Empty"></section>';
       const nodes = service.parseXml(xml);

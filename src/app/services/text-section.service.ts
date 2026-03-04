@@ -47,6 +47,10 @@ export class TextSectionService {
     this.mutateNode(nodeId, (node) => (node.label = label));
   }
 
+  updateNodeTranslation(nodeId: string, translation: string): void {
+    this.mutateNode(nodeId, (node) => (node.translation = translation));
+  }
+
   /** Split text from cursor to end into a new child of this node */
   splitToChild(nodeId: string, contentIndex: number, cursorPos: number): string | null {
     let newId: string | null = null;
@@ -328,14 +332,23 @@ export class TextSectionService {
         // Check if this node has only text (no child nodes)
         const hasChildNodes = node.children.some(c => this.isTextNode(c));
         const allText = node.children.filter(c => typeof c === 'string').map(s => s.trim()).join('');
+        const translationAttr = node.translation?.trim()
+          ? `\n${pad}  <translation>${this.escapeXml(node.translation.trim())}</translation>`
+          : '';
 
         if (!hasChildNodes && allText) {
-          // Inline text-only nodes
+          // Inline text-only nodes — use multiline if there's a translation
+          if (translationAttr) {
+            return `${pad}<section${labelAttr}>\n${pad}  ${this.escapeXml(allText)}${translationAttr}\n${pad}</section>`;
+          }
           return `${pad}<section${labelAttr}>${this.escapeXml(allText)}</section>`;
         }
 
         if (!hasChildNodes && !allText) {
-          // Empty node - skip it
+          // Empty node — skip unless it has a translation
+          if (translationAttr) {
+            return `${pad}<section${labelAttr}>${translationAttr}\n${pad}</section>`;
+          }
           return '';
         }
 
@@ -345,22 +358,24 @@ export class TextSectionService {
         // Get the last line to potentially append closing tag
         const lines = childLines.split('\n').filter(l => l.length > 0);
         if (lines.length === 0) {
-          return `${pad}<section${labelAttr}></section>`;
+          return translationAttr
+            ? `${pad}<section${labelAttr}>${translationAttr}\n${pad}</section>`
+            : `${pad}<section${labelAttr}></section>`;
         }
 
         const lastLine = lines[lines.length - 1];
         const otherLines = lines.slice(0, -1);
 
-        // If last line is a complete section tag, append our closing tag to it
-        if (lastLine.trim().startsWith('<section') && lastLine.trim().endsWith('</section>')) {
+        // If last line is a complete section tag, append our closing tag to it (only when no translation)
+        if (!translationAttr && lastLine.trim().startsWith('<section') && lastLine.trim().endsWith('</section>')) {
           const result = otherLines.length > 0
             ? `${pad}<section${labelAttr}>\n${otherLines.join('\n')}\n${lastLine}</section>`
             : `${pad}<section${labelAttr}>\n${lastLine}</section>`;
           return result;
         }
 
-        // Otherwise use normal multi-line format
-        return `${pad}<section${labelAttr}>\n${childLines}\n${pad}</section>`;
+        // Otherwise use normal multi-line format, appending translation before closing tag
+        return `${pad}<section${labelAttr}>\n${childLines}${translationAttr}\n${pad}</section>`;
       })
       .filter((s) => s.length > 0)
       .join('\n');

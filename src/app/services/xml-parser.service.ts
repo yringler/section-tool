@@ -83,6 +83,8 @@ export class XmlParserService {
         if (childElement.tagName.toLowerCase() === 'section') {
           // Recursively parse child section
           node.children.push(this.parseSection(childElement));
+        } else if (childElement.tagName.toLowerCase() === 'translation') {
+          node.translation = this.unescapeXml(childElement.textContent || '').trim();
         }
       }
     }

@@ -11,29 +11,48 @@
     <button class="delete-btn" (click)="onDelete()" title="Delete section">&times;</button>
   </div>
 
-  @for (item of node().children; track $index) {
-    @if (isString(item)) {
-      <wa-textarea
-        class="text-area"
-        dir="rtl"
-        resize="auto"
-        [attr.data-node-id]="node().id"
-        [attr.data-content-index]="$index"
-        [value]="item"
-        (input)="onTextInput($event, $index)"
-        (keydown)="onKeydown($event, waTextarea, $index)"
-        #waTextarea
-        placeholder="Enter text here..."
-      ></wa-textarea>
-    } @else {
-      <app-text-node
-        [node]="item"
-        [level]="level() + 1"
-        (nodeKeydown)="onChildKeydown($event)"
-        (textChange)="onChildTextChange($event)"
-        (labelChange)="onChildLabelChange($event)"
-        (deleteNode)="onChildDelete($event)"
-      />
+  <div class="node-body" [class.translation-mode]="showTranslation()">
+    <div class="hebrew-content">
+      @for (item of node().children; track $index) {
+        @if (isString(item)) {
+          <wa-textarea
+            class="text-area"
+            dir="rtl"
+            resize="auto"
+            [attr.data-node-id]="node().id"
+            [attr.data-content-index]="$index"
+            [value]="item"
+            (input)="onTextInput($event, $index)"
+            (keydown)="onKeydown($event, waTextarea, $index)"
+            #waTextarea
+            placeholder="Enter text here..."
+          ></wa-textarea>
+        } @else {
+          <app-text-node
+            [node]="item"
+            [level]="level() + 1"
+            [showTranslation]="showTranslation()"
+            (nodeKeydown)="onChildKeydown($event)"
+            (textChange)="onChildTextChange($event)"
+            (labelChange)="onChildLabelChange($event)"
+            (deleteNode)="onChildDelete($event)"
+            (translationChange)="onChildTranslationChange($event)"
+          />
+        }
+      }
+    </div>
+
+    @if (showTranslation()) {
+      <div class="translation-content">
+        <wa-textarea
+          class="translation-area"
+          dir="ltr"
+          resize="auto"
+          [value]="node().translation || ''"
+          (input)="onTranslationInput($event)"
+          placeholder="Translation..."
+        ></wa-textarea>
+      </div>
     }
-  }
+  </div>
 </div>

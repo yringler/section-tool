@@ -1,6 +1,6 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { TextSectionService } from '../services/text-section.service';
-import { TextNodeComponent, NodeKeydownEvent, NodeTextChangeEvent, NodeLabelChangeEvent, NodeDeleteEvent } from '../components/text-node/text-node.component';
+import { TextNodeComponent, NodeKeydownEvent, NodeTextChangeEvent, NodeLabelChangeEvent, NodeDeleteEvent, NodeTranslationChangeEvent } from '../components/text-node/text-node.component';
 import { XmlOutputComponent } from '../components/xml-output/xml-output.component';
 
 @Component({
@@ -15,6 +15,11 @@ export class TextSectionerComponent {
 
   rootNodes = this.service.rootNodes;
   xmlOutput = this.service.xmlOutput;
+  showTranslation = signal(false);
+
+  toggleTranslation(): void {
+    this.showTranslation.update(v => !v);
+  }
 
   onNodeKeydown(event: NodeKeydownEvent): void {
     const { nodeId, contentIndex, event: keyEvent, cursorPos } = event;
@@ -52,6 +57,10 @@ export class TextSectionerComponent {
 
   onDeleteNode(event: NodeDeleteEvent): void {
     this.service.deleteNode(event.nodeId);
+  }
+
+  onTranslationChange(event: NodeTranslationChangeEvent): void {
+    this.service.updateNodeTranslation(event.nodeId, event.translation);
   }
 
   onCopy(): void {
