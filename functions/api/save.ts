@@ -1,3 +1,5 @@
+/// <reference types="@cloudflare/workers-types" />
+
 interface Env {
   API_SECRET: string;
   GITHUB_TOKEN: string;
