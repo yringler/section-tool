@@ -13,39 +13,6 @@
   gap: 6px;
 }
 
-.action-btn {
-  background: #e3f2fd;
-  color: #1565c0;
-  border: 1px solid #bbdefb;
-  border-radius: 4px;
-  padding: 4px 12px;
-  font-size: 0.8rem;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.action-btn:hover {
-  background: #bbdefb;
-}
-
-.action-btn.danger {
-  background: #ffebee;
-  color: #c62828;
-  border-color: #ef9a9a;
-}
-
-.action-btn.danger:hover {
-  background: #ef9a9a;
-}
-
-.action-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.action-btn:disabled:hover {
-  background: #e3f2fd;
-}
 
 .paste-area {
   width: 100%;

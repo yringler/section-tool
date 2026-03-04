@@ -1,12 +1,16 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { TextSectionService } from '../services/text-section.service';
 import { TextNodeComponent, NodeKeydownEvent, NodeTextChangeEvent, NodeLabelChangeEvent, NodeDeleteEvent, NodeTranslationChangeEvent } from '../components/text-node/text-node.component';
 import { XmlOutputComponent } from '../components/xml-output/xml-output.component';
+
+import '@awesome.me/webawesome/dist/components/button/button.js';
+import '@awesome.me/webawesome/dist/components/icon/icon.js';
 
 @Component({
   selector: 'app-text-sectioner',
   standalone: true,
   imports: [TextNodeComponent, XmlOutputComponent],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './text-sectioner.component.html',
   styleUrl: './text-sectioner.component.css',
 })

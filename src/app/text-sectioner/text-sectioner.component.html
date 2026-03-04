@@ -8,13 +8,15 @@
       <kbd>Shift+Enter</kbd> merge parent &middot;
       <kbd>Shift+Tab</kbd> merge prev
     </p>
-    <button
-      class="translation-toggle"
-      [class.active]="showTranslation()"
+    <wa-button
+      size="small"
+      appearance="outlined"
+      [variant]="showTranslation() ? 'success' : 'neutral'"
       (click)="toggleTranslation()"
     >
+      <wa-icon [name]="showTranslation() ? 'eye-slash' : 'eye'" slot="start"></wa-icon>
       {{ showTranslation() ? 'Hide Translation' : 'Show Translation' }}
-    </button>
+    </wa-button>
   </header>
 
   <div class="output-panel">

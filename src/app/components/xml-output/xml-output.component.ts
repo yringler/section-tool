@@ -1,10 +1,14 @@
-import { Component, input, output, ElementRef, viewChild } from '@angular/core';
+import { Component, input, output, ElementRef, viewChild, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { XmlLibraryPickerComponent } from '../xml-library-picker/xml-library-picker.component';
+
+import '@awesome.me/webawesome/dist/components/button/button.js';
+import '@awesome.me/webawesome/dist/components/icon/icon.js';
 
 @Component({
   selector: 'app-xml-output',
   standalone: true,
   imports: [XmlLibraryPickerComponent],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './xml-output.component.html',
   styleUrl: './xml-output.component.css',
 })
