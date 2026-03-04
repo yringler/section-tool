@@ -1,9 +1,11 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class XmlLibraryService {
   private readonly indexUrl = `${environment.xmlBaseUrl}/xml/index.json`;
+
+  readonly currentFile = signal<string | null>(null);
 
   async getFileList(): Promise<string[]> {
     const response = await fetch(this.indexUrl);
@@ -19,6 +21,7 @@ export class XmlLibraryService {
     if (!response.ok) {
       throw new Error(`Failed to load XML file "${filename}": ${response.statusText}`);
     }
+    this.currentFile.set(filename);
     return response.text();
   }
 }

@@ -8,7 +8,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "test:library": "tsx src/app/services/xml-library.manual-test.ts"
+    "test:library": "tsx src/app/services/xml-library.manual-test.ts",
+    "dev:full": "ng build && npx wrangler pages dev dist/hebrew-section-tool/browser --binding API_SECRET=$API_SECRET --binding GITHUB_TOKEN=$GITHUB_TOKEN --binding GITHUB_OWNER=$GITHUB_OWNER --binding GITHUB_REPO=$GITHUB_REPO --binding ALLOWED_ORIGIN=http://localhost:4200"
   },
   "private": true,
   "dependencies": {
@@ -32,6 +33,7 @@
     "jsdom": "^28.1.0",
     "tsx": "^4.21.0",
     "typescript": "~5.9.0",
-    "vitest": "^4.0.18"
+    "vitest": "^4.0.18",
+    "wrangler": "^3.0.0"
   }
 }

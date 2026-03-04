@@ -2,6 +2,8 @@ import { Component, inject, signal, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core
 import { TextSectionService } from '../services/text-section.service';
 import { TextNodeComponent, NodeKeydownEvent, NodeTextChangeEvent, NodeLabelChangeEvent, NodeDeleteEvent, NodeTranslationChangeEvent } from '../components/text-node/text-node.component';
 import { XmlOutputComponent } from '../components/xml-output/xml-output.component';
+import { SaveService } from '../services/save.service';
+import { XmlLibraryService } from '../services/xml-library.service';
 
 import '@awesome.me/webawesome/dist/components/button/button.js';
 import '@awesome.me/webawesome/dist/components/icon/icon.js';
@@ -16,10 +18,15 @@ import '@awesome.me/webawesome/dist/components/icon/icon.js';
 })
 export class TextSectionerComponent {
   private service = inject(TextSectionService);
+  private saveService = inject(SaveService);
+  private libraryService = inject(XmlLibraryService);
 
   rootNodes = this.service.rootNodes;
   xmlOutput = this.service.xmlOutput;
   showTranslation = signal(false);
+  saveStatus = this.saveService.status;
+  saveErrorMessage = this.saveService.errorMessage;
+  currentFile = this.libraryService.currentFile;
 
   toggleTranslation(): void {
     this.showTranslation.update(v => !v);
@@ -91,5 +98,17 @@ export class TextSectionerComponent {
     } catch (error) {
       alert('Failed to load XML: ' + (error instanceof Error ? error.message : 'Invalid XML format'));
     }
+  }
+
+  onSave(): void {
+    const filename = this.currentFile();
+    if (!filename) {
+      alert('No file loaded. Load a file from the library before saving.');
+      return;
+    }
+    const path = `src/texts/${filename}`;
+    const content = this.xmlOutput();
+    const message = `Edit ${filename} via editor`;
+    void this.saveService.save(path, content, message);
   }
 }

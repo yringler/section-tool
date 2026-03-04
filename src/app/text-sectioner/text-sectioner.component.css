@@ -41,3 +41,8 @@ kbd {
 .output-panel {
   margin-bottom: 16px;
 }
+
+.save-error {
+  font-size: 0.8rem;
+  color: #c62828;
+}
