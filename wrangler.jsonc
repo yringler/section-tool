@@ -1,0 +1,11 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "section-tool",
+  "compatibility_date": "2025-09-27",
+  "assets": {
+    "directory": "./dist/hebrew-section-tool/browser"
+  },
+  "compatibility_flags": [
+    "nodejs_compat"
+  ]
+}
