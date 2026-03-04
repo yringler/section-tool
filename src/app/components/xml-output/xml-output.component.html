@@ -1,6 +1,7 @@
 <div class="xml-output">
   <div class="output-actions">
     <button class="action-btn" (click)="onLoadFileClick()" title="Load XML file">Load</button>
+    <app-xml-library-picker (fileSelected)="loadRequest.emit($event)" />
     <button class="action-btn" (click)="onCopy()" [disabled]="!xmlContent()" title="Copy XML to clipboard">Copy</button>
     <button class="action-btn danger" (click)="onClear()" title="Clear all sections">Clear</button>
   </div>

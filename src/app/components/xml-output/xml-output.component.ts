@@ -1,8 +1,10 @@
 import { Component, input, output, ElementRef, viewChild } from '@angular/core';
+import { XmlLibraryPickerComponent } from '../xml-library-picker/xml-library-picker.component';
 
 @Component({
   selector: 'app-xml-output',
   standalone: true,
+  imports: [XmlLibraryPickerComponent],
   templateUrl: './xml-output.component.html',
   styleUrl: './xml-output.component.css',
 })
