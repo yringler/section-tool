@@ -12,7 +12,7 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
-            "outputPath": { "base": "dist/hebrew-section-tool", "browser": "" },
+            "outputPath": "dist/hebrew-section-tool",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "tsConfig": "tsconfig.app.json",
