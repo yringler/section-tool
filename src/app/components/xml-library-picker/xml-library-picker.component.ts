@@ -4,7 +4,6 @@ import { XmlLibraryService } from '../../services/xml-library.service';
 import '@awesome.me/webawesome/dist/components/button/button.js';
 import '@awesome.me/webawesome/dist/components/dialog/dialog.js';
 import '@awesome.me/webawesome/dist/components/input/input.js';
-import '@awesome.me/webawesome/dist/components/spinner/spinner.js';
 
 @Component({
   selector: 'app-xml-library-picker',
@@ -20,8 +19,7 @@ export class XmlLibraryPickerComponent {
 
   isOpen = signal(false);
   isLoading = signal(false);
-  isLoadingFile = signal(false);
-  error = signal<string | null>(null);
+error = signal<string | null>(null);
   files = signal<string[]>([]);
   filter = signal('');
   selectedFile = signal<string | null>(null);
@@ -55,14 +53,9 @@ export class XmlLibraryPickerComponent {
     this.filter.set((event.target as HTMLInputElement).value);
   }
 
-  selectFile(filename: string): void {
+  async loadSelected(filename: string): Promise<void> {
     this.selectedFile.set(filename);
-  }
-
-  async loadSelected(): Promise<void> {
-    const filename = this.selectedFile();
-    if (!filename) return;
-    this.isLoadingFile.set(true);
+    this.isLoading.set(true);
     this.error.set(null);
     try {
       const content = await this.libraryService.loadFile(filename);
@@ -71,7 +64,7 @@ export class XmlLibraryPickerComponent {
     } catch (e) {
       this.error.set(e instanceof Error ? e.message : 'Failed to load file');
     } finally {
-      this.isLoadingFile.set(false);
+      this.isLoading.set(false);
     }
   }
 

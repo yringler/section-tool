@@ -34,8 +34,7 @@
         <li
           class="file-item"
           [class.selected]="selectedFile() === file"
-          (click)="selectFile(file)"
-          (dblclick)="loadSelected()"
+          (click)="loadSelected(file)"
         >
           <wa-icon name="file-code"></wa-icon>
           {{ file }}
@@ -46,16 +45,5 @@
     </ul>
   }
 
-  <wa-button
-    slot="footer"
-    variant="brand"
-    [disabled]="!selectedFile() || isLoadingFile()"
-    (click)="loadSelected()"
-  >
-    @if (isLoadingFile()) {
-      <wa-spinner></wa-spinner>
-    }
-    Load
-  </wa-button>
   <wa-button slot="footer" appearance="plain" data-dialog="close">Cancel</wa-button>
 </wa-dialog>
