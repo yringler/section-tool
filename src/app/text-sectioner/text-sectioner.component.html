@@ -17,30 +17,28 @@
     </button>
   </header>
 
-  <div class="main-layout">
-    <div class="editor-panel">
-      @for (node of rootNodes(); track node.id) {
-        <app-text-node
-          [node]="node"
-          [level]="1"
-          [showTranslation]="showTranslation()"
-          (nodeKeydown)="onNodeKeydown($event)"
-          (textChange)="onTextChange($event)"
-          (labelChange)="onLabelChange($event)"
-          (deleteNode)="onDeleteNode($event)"
-          (translationChange)="onTranslationChange($event)"
-        />
-      }
-    </div>
+  <div class="output-panel">
+    <app-xml-output
+      [xmlContent]="xmlOutput()"
+      (copyRequest)="onCopy()"
+      (downloadRequest)="onDownload()"
+      (clearRequest)="onClear()"
+      (loadRequest)="onLoad($event)"
+    />
+  </div>
 
-    <div class="output-panel">
-      <app-xml-output
-        [xmlContent]="xmlOutput()"
-        (copyRequest)="onCopy()"
-        (downloadRequest)="onDownload()"
-        (clearRequest)="onClear()"
-        (loadRequest)="onLoad($event)"
+  <div class="editor-panel">
+    @for (node of rootNodes(); track node.id) {
+      <app-text-node
+        [node]="node"
+        [level]="1"
+        [showTranslation]="showTranslation()"
+        (nodeKeydown)="onNodeKeydown($event)"
+        (textChange)="onTextChange($event)"
+        (labelChange)="onLabelChange($event)"
+        (deleteNode)="onDeleteNode($event)"
+        (translationChange)="onTranslationChange($event)"
       />
-    </div>
+    }
   </div>
 </div>
