@@ -19,6 +19,28 @@
 .subtitle {
   font-size: 0.85rem;
   color: #777;
+  margin-bottom: 10px;
+}
+
+.translation-toggle {
+  margin-top: 8px;
+  padding: 6px 16px;
+  border: 1px solid #2e7d32;
+  border-radius: 16px;
+  background: transparent;
+  color: #2e7d32;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.translation-toggle:hover {
+  background: #e8f5e9;
+}
+
+.translation-toggle.active {
+  background: #2e7d32;
+  color: #fff;
 }
 
 kbd {
@@ -32,7 +54,7 @@ kbd {
 
 .main-layout {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 220px;
   gap: 24px;
   align-items: start;
 }
@@ -46,5 +68,4 @@ kbd {
 .output-panel {
   position: sticky;
   top: 20px;
-  min-height: 300px;
 }

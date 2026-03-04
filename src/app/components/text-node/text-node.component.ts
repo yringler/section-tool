@@ -24,6 +24,11 @@ export interface NodeDeleteEvent {
   nodeId: string;
 }
 
+export interface NodeTranslationChangeEvent {
+  nodeId: string;
+  translation: string;
+}
+
 @Component({
   selector: 'app-text-node',
   standalone: true,
@@ -35,11 +40,13 @@ export interface NodeDeleteEvent {
 export class TextNodeComponent {
   node = input.required<TextNode>();
   level = input<number>(1);
+  showTranslation = input<boolean>(false);
 
   nodeKeydown = output<NodeKeydownEvent>();
   textChange = output<NodeTextChangeEvent>();
   labelChange = output<NodeLabelChangeEvent>();
   deleteNode = output<NodeDeleteEvent>();
+  translationChange = output<NodeTranslationChangeEvent>();
 
   onKeydown(event: KeyboardEvent, waTextarea: any, contentIndex: number): void {
     if (
@@ -64,6 +71,12 @@ export class TextNodeComponent {
     const waTextarea = event.target as any;
     const value = waTextarea.value;
     this.textChange.emit({ nodeId: this.node().id, contentIndex, text: value });
+  }
+
+  onTranslationInput(event: Event): void {
+    const waTextarea = event.target as any;
+    const value = waTextarea.value;
+    this.translationChange.emit({ nodeId: this.node().id, translation: value });
   }
 
   isString(item: TextNode | string): item is string {
@@ -94,5 +107,9 @@ export class TextNodeComponent {
 
   onChildDelete(event: NodeDeleteEvent): void {
     this.deleteNode.emit(event);
+  }
+
+  onChildTranslationChange(event: NodeTranslationChangeEvent): void {
+    this.translationChange.emit(event);
   }
 }

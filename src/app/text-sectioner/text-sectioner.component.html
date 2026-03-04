@@ -8,6 +8,13 @@
       <kbd>Shift+Enter</kbd> merge parent &middot;
       <kbd>Shift+Tab</kbd> merge prev
     </p>
+    <button
+      class="translation-toggle"
+      [class.active]="showTranslation()"
+      (click)="toggleTranslation()"
+    >
+      {{ showTranslation() ? 'Hide Translation' : 'Show Translation' }}
+    </button>
   </header>
 
   <div class="main-layout">
@@ -16,10 +23,12 @@
         <app-text-node
           [node]="node"
           [level]="1"
+          [showTranslation]="showTranslation()"
           (nodeKeydown)="onNodeKeydown($event)"
           (textChange)="onTextChange($event)"
           (labelChange)="onLabelChange($event)"
           (deleteNode)="onDeleteNode($event)"
+          (translationChange)="onTranslationChange($event)"
         />
       }
     </div>

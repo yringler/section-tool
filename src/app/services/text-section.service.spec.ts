@@ -495,6 +495,29 @@ describe('TextSectionService', () => {
     });
   });
 
+  describe('updateNodeTranslation', () => {
+    it('should set translation on root node', () => {
+      const nodeId = service.rootNodes()[0].id;
+      service.updateNodeTranslation(nodeId, 'Hello in English');
+      expect(service.rootNodes()[0].translation).toBe('Hello in English');
+    });
+
+    it('should update translation of nested node', () => {
+      const root = service.rootNodes()[0];
+      const child = service.createNode('child text');
+      root.children = [child];
+      service.rootNodes.set([root]);
+
+      service.updateNodeTranslation(child.id, 'child translation');
+      expect((service.rootNodes()[0].children[0] as TextNode).translation).toBe('child translation');
+    });
+
+    it('should do nothing if node not found', () => {
+      service.updateNodeTranslation('non-existent-id', 'translation');
+      expect(service.rootNodes()[0].translation).toBeUndefined();
+    });
+  });
+
   describe('clearAll', () => {
     it('should reset to single empty root node', () => {
       const root1 = service.createNode('First');
@@ -601,6 +624,37 @@ describe('TextSectionService', () => {
 
       const xml = service.xmlOutput();
       expect(xml).toBe('<section>\n  <section>Text with spaces</section>\n</section>');
+    });
+
+    it('should include translation element when node has translation', () => {
+      service.clearAll();
+      const root = service.createNode('Hebrew text', 'Chapter 1');
+      root.translation = 'English translation';
+      service.rootNodes.set([root]);
+
+      const xml = service.xmlOutput();
+      expect(xml).toContain('<translation>English translation</translation>');
+      expect(xml).toContain('Hebrew text');
+    });
+
+    it('should not include translation element when translation is empty', () => {
+      service.clearAll();
+      const root = service.createNode('Hebrew text');
+      root.translation = '';
+      service.rootNodes.set([root]);
+
+      const xml = service.xmlOutput();
+      expect(xml).not.toContain('<translation>');
+    });
+
+    it('should escape special characters in translation', () => {
+      service.clearAll();
+      const root = service.createNode('text');
+      root.translation = 'Text with <tag> & "quotes"';
+      service.rootNodes.set([root]);
+
+      const xml = service.xmlOutput();
+      expect(xml).toContain('<translation>Text with &lt;tag&gt; &amp; &quot;quotes&quot;</translation>');
     });
 
     it('should handle complex nested structure', () => {
