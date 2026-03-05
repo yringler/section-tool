@@ -9,7 +9,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "test:library": "tsx src/app/services/xml-library.manual-test.ts",
-    "dev:full": "ng build && npx wrangler pages dev dist/hebrew-section-tool/browser --binding API_SECRET=$API_SECRET --binding GITHUB_TOKEN=$GITHUB_TOKEN --binding GITHUB_OWNER=$GITHUB_OWNER --binding GITHUB_REPO=$GITHUB_REPO --binding ALLOWED_ORIGIN=http://localhost:4200"
+    "dev:full": "ng build && npx wrangler pages dev dist/hebrew-section-tool/browser"
   },
   "private": true,
   "dependencies": {
