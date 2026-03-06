@@ -50,6 +50,8 @@
           resize="auto"
           [value]="node().translation || ''"
           (input)="onTranslationInput($event)"
+          (keydown)="onTranslationKeydown($event, translationTextarea)"
+          #translationTextarea
           placeholder="Translation..."
         ></wa-textarea>
       </div>

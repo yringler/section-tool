@@ -633,7 +633,7 @@ describe('TextSectionService', () => {
       service.rootNodes.set([root]);
 
       const xml = service.xmlOutput();
-      expect(xml).toContain('<translation>English translation</translation>');
+      expect(xml).toContain('<translation><![CDATA[English translation]]></translation>');
       expect(xml).toContain('Hebrew text');
     });
 
@@ -647,14 +647,14 @@ describe('TextSectionService', () => {
       expect(xml).not.toContain('<translation>');
     });
 
-    it('should escape special characters in translation', () => {
+    it('should allow HTML in translation via CDATA', () => {
       service.clearAll();
       const root = service.createNode('text');
-      root.translation = 'Text with <tag> & "quotes"';
+      root.translation = 'Text with <i>italic</i> & "quotes"';
       service.rootNodes.set([root]);
 
       const xml = service.xmlOutput();
-      expect(xml).toContain('<translation>Text with &lt;tag&gt; &amp; &quot;quotes&quot;</translation>');
+      expect(xml).toContain('<translation><![CDATA[Text with <i>italic</i> & "quotes"]]></translation>');
     });
 
     it('should handle complex nested structure', () => {
