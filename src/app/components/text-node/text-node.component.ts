@@ -79,6 +79,29 @@ export class TextNodeComponent {
     this.translationChange.emit({ nodeId: this.node().id, translation: value });
   }
 
+  onTranslationKeydown(event: KeyboardEvent, waTextarea: any): void {
+    if (event.key === 'i' && (event.ctrlKey || event.metaKey)) {
+      event.preventDefault();
+      const internalTextarea = waTextarea.shadowRoot?.querySelector('textarea') as HTMLTextAreaElement | null;
+      if (!internalTextarea) return;
+
+      const start = internalTextarea.selectionStart ?? 0;
+      const end = internalTextarea.selectionEnd ?? 0;
+      const value = internalTextarea.value;
+
+      const newValue = value.slice(0, start) + '<i>' + value.slice(start, end) + '</i>' + value.slice(end);
+      waTextarea.value = newValue;
+
+      // Place cursor inside <i></i> if no selection, or after </i> if text was selected
+      const newCursorPos = start === end ? start + 3 : end + 7;
+      requestAnimationFrame(() => {
+        internalTextarea.setSelectionRange(newCursorPos, newCursorPos);
+      });
+
+      this.translationChange.emit({ nodeId: this.node().id, translation: newValue });
+    }
+  }
+
   isString(item: TextNode | string): item is string {
     return typeof item === 'string';
   }

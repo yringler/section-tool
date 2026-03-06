@@ -333,7 +333,7 @@ export class TextSectionService {
         const hasChildNodes = node.children.some(c => this.isTextNode(c));
         const allText = node.children.filter(c => typeof c === 'string').map(s => s.trim()).join('');
         const translationAttr = node.translation?.trim()
-          ? `\n${pad}  <translation>${this.escapeXml(node.translation.trim())}</translation>`
+          ? `\n${pad}  <translation><![CDATA[${node.translation.trim()}]]></translation>`
           : '';
 
         if (!hasChildNodes && allText) {
