@@ -188,6 +188,13 @@ export class TextSectionService {
     // Merge adjacent text strings
     this.mergeAdjacentStrings(parent.children);
 
+    // Preserve translation: concatenate if both have one, keep whichever exists
+    if (node.translation?.trim()) {
+      parent.translation = parent.translation?.trim()
+        ? parent.translation.trim() + '\n' + node.translation.trim()
+        : node.translation.trim();
+    }
+
     this.rootNodes.set([...roots]);
     return parent.id;
   }
@@ -218,6 +225,13 @@ export class TextSectionService {
 
     // Merge adjacent text strings in the previous sibling
     this.mergeAdjacentStrings(prev.children);
+
+    // Preserve translation: concatenate if both have one, keep whichever exists
+    if (node.translation?.trim()) {
+      prev.translation = prev.translation?.trim()
+        ? prev.translation.trim() + '\n' + node.translation.trim()
+        : node.translation.trim();
+    }
 
     // Remove current node (and any text between prev and current)
     siblings.splice(prevIndex + 1, nodeIndex - prevIndex);

@@ -518,6 +518,108 @@ describe('TextSectionService', () => {
     });
   });
 
+  describe('translation behavior during section operations', () => {
+    describe('mergeWithParent', () => {
+      it('should keep child translation on parent when parent has none', () => {
+        const root = service.rootNodes()[0];
+        service.updateNodeText(root.id, 0, 'Parent text');
+        const child = service.createNode('Child text');
+        child.translation = 'Child translation';
+        root.children.push(child);
+        service.rootNodes.set([root]);
+
+        service.mergeWithParent(child.id);
+
+        expect(service.rootNodes()[0].translation).toBe('Child translation');
+      });
+
+      it('should keep parent translation when child has none', () => {
+        const root = service.rootNodes()[0];
+        root.translation = 'Parent translation';
+        service.updateNodeText(root.id, 0, 'Parent text');
+        const child = service.createNode('Child text');
+        root.children.push(child);
+        service.rootNodes.set([root]);
+
+        service.mergeWithParent(child.id);
+
+        expect(service.rootNodes()[0].translation).toBe('Parent translation');
+      });
+
+      it('should concatenate translations when both parent and child have one', () => {
+        const root = service.rootNodes()[0];
+        root.translation = 'Parent translation';
+        service.updateNodeText(root.id, 0, 'Parent text');
+        const child = service.createNode('Child text');
+        child.translation = 'Child translation';
+        root.children.push(child);
+        service.rootNodes.set([root]);
+
+        service.mergeWithParent(child.id);
+
+        expect(service.rootNodes()[0].translation).toBe('Parent translation\nChild translation');
+      });
+
+      it('should leave parent translation undefined when neither has one', () => {
+        const root = service.rootNodes()[0];
+        service.updateNodeText(root.id, 0, 'Parent text');
+        const child = service.createNode('Child text');
+        root.children.push(child);
+        service.rootNodes.set([root]);
+
+        service.mergeWithParent(child.id);
+
+        expect(service.rootNodes()[0].translation).toBeUndefined();
+      });
+    });
+
+    describe('mergeWithPreviousSibling', () => {
+      it('should keep current node translation on previous sibling when previous has none', () => {
+        const prev = service.createNode('First');
+        const curr = service.createNode('Second');
+        curr.translation = 'Second translation';
+        service.rootNodes.set([prev, curr]);
+
+        service.mergeWithPreviousSibling(curr.id);
+
+        expect(service.rootNodes()[0].translation).toBe('Second translation');
+      });
+
+      it('should keep previous sibling translation when current node has none', () => {
+        const prev = service.createNode('First');
+        prev.translation = 'First translation';
+        const curr = service.createNode('Second');
+        service.rootNodes.set([prev, curr]);
+
+        service.mergeWithPreviousSibling(curr.id);
+
+        expect(service.rootNodes()[0].translation).toBe('First translation');
+      });
+
+      it('should concatenate translations when both siblings have one', () => {
+        const prev = service.createNode('First');
+        prev.translation = 'First translation';
+        const curr = service.createNode('Second');
+        curr.translation = 'Second translation';
+        service.rootNodes.set([prev, curr]);
+
+        service.mergeWithPreviousSibling(curr.id);
+
+        expect(service.rootNodes()[0].translation).toBe('First translation\nSecond translation');
+      });
+
+      it('should leave previous sibling translation undefined when neither has one', () => {
+        const prev = service.createNode('First');
+        const curr = service.createNode('Second');
+        service.rootNodes.set([prev, curr]);
+
+        service.mergeWithPreviousSibling(curr.id);
+
+        expect(service.rootNodes()[0].translation).toBeUndefined();
+      });
+    });
+  });
+
   describe('clearAll', () => {
     it('should reset to single empty root node', () => {
       const root1 = service.createNode('First');
