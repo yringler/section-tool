@@ -518,6 +518,185 @@ describe('TextSectionService', () => {
     });
   });
 
+  describe('translation behavior during section operations', () => {
+    describe('splitToChild', () => {
+      it('should keep translation on original node after split', () => {
+        const nodeId = service.rootNodes()[0].id;
+        service.updateNodeText(nodeId, 0, 'Hello World');
+        service.updateNodeTranslation(nodeId, 'My translation');
+
+        service.splitToChild(nodeId, 0, 5);
+
+        expect(service.rootNodes()[0].translation).toBe('My translation');
+      });
+
+      it('should not give translation to the new child node', () => {
+        const nodeId = service.rootNodes()[0].id;
+        service.updateNodeText(nodeId, 0, 'Hello World');
+        service.updateNodeTranslation(nodeId, 'My translation');
+
+        const newId = service.splitToChild(nodeId, 0, 5);
+
+        const newChild = service.rootNodes()[0].children[1] as TextNode;
+        expect(newChild.id).toBe(newId);
+        expect(newChild.translation).toBeUndefined();
+      });
+    });
+
+    describe('splitToSibling', () => {
+      it('should keep translation on original node after split', () => {
+        const nodeId = service.rootNodes()[0].id;
+        service.updateNodeText(nodeId, 0, 'Hello World');
+        service.updateNodeTranslation(nodeId, 'My translation');
+
+        service.splitToSibling(nodeId, 0, 5);
+
+        expect(service.rootNodes()[0].translation).toBe('My translation');
+      });
+
+      it('should not give translation to the new sibling node', () => {
+        const nodeId = service.rootNodes()[0].id;
+        service.updateNodeText(nodeId, 0, 'Hello World');
+        service.updateNodeTranslation(nodeId, 'My translation');
+
+        const newId = service.splitToSibling(nodeId, 0, 5);
+
+        const newSibling = service.rootNodes()[1];
+        expect(newSibling.id).toBe(newId);
+        expect(newSibling.translation).toBeUndefined();
+      });
+    });
+
+    describe('splitToParentSibling', () => {
+      it('should keep translation on original node after split', () => {
+        const root = service.rootNodes()[0];
+        const child = service.createNode('Hello World');
+        child.translation = 'My translation';
+        root.children = ['', child];
+        service.rootNodes.set([root]);
+
+        service.splitToParentSibling(child.id, 0, 5);
+
+        const updatedChild = service.rootNodes()[0].children[1] as TextNode;
+        expect(updatedChild.translation).toBe('My translation');
+      });
+
+      it('should not give translation to the promoted new node', () => {
+        const root = service.rootNodes()[0];
+        const child = service.createNode('Hello World');
+        child.translation = 'My translation';
+        root.children = ['', child];
+        service.rootNodes.set([root]);
+
+        const newId = service.splitToParentSibling(child.id, 0, 5);
+
+        const promoted = service.rootNodes()[1];
+        expect(promoted.id).toBe(newId);
+        expect(promoted.translation).toBeUndefined();
+      });
+    });
+
+    describe('mergeWithParent', () => {
+      it('should keep child translation on parent when parent has none', () => {
+        const root = service.rootNodes()[0];
+        service.updateNodeText(root.id, 0, 'Parent text');
+        const child = service.createNode('Child text');
+        child.translation = 'Child translation';
+        root.children.push(child);
+        service.rootNodes.set([root]);
+
+        service.mergeWithParent(child.id);
+
+        expect(service.rootNodes()[0].translation).toBe('Child translation');
+      });
+
+      it('should keep parent translation when child has none', () => {
+        const root = service.rootNodes()[0];
+        root.translation = 'Parent translation';
+        service.updateNodeText(root.id, 0, 'Parent text');
+        const child = service.createNode('Child text');
+        root.children.push(child);
+        service.rootNodes.set([root]);
+
+        service.mergeWithParent(child.id);
+
+        expect(service.rootNodes()[0].translation).toBe('Parent translation');
+      });
+
+      it('should concatenate translations when both parent and child have one', () => {
+        const root = service.rootNodes()[0];
+        root.translation = 'Parent translation';
+        service.updateNodeText(root.id, 0, 'Parent text');
+        const child = service.createNode('Child text');
+        child.translation = 'Child translation';
+        root.children.push(child);
+        service.rootNodes.set([root]);
+
+        service.mergeWithParent(child.id);
+
+        expect(service.rootNodes()[0].translation).toBe('Parent translation\nChild translation');
+      });
+
+      it('should leave parent translation undefined when neither has one', () => {
+        const root = service.rootNodes()[0];
+        service.updateNodeText(root.id, 0, 'Parent text');
+        const child = service.createNode('Child text');
+        root.children.push(child);
+        service.rootNodes.set([root]);
+
+        service.mergeWithParent(child.id);
+
+        expect(service.rootNodes()[0].translation).toBeUndefined();
+      });
+    });
+
+    describe('mergeWithPreviousSibling', () => {
+      it('should keep current node translation on previous sibling when previous has none', () => {
+        const prev = service.createNode('First');
+        const curr = service.createNode('Second');
+        curr.translation = 'Second translation';
+        service.rootNodes.set([prev, curr]);
+
+        service.mergeWithPreviousSibling(curr.id);
+
+        expect(service.rootNodes()[0].translation).toBe('Second translation');
+      });
+
+      it('should keep previous sibling translation when current node has none', () => {
+        const prev = service.createNode('First');
+        prev.translation = 'First translation';
+        const curr = service.createNode('Second');
+        service.rootNodes.set([prev, curr]);
+
+        service.mergeWithPreviousSibling(curr.id);
+
+        expect(service.rootNodes()[0].translation).toBe('First translation');
+      });
+
+      it('should concatenate translations when both siblings have one', () => {
+        const prev = service.createNode('First');
+        prev.translation = 'First translation';
+        const curr = service.createNode('Second');
+        curr.translation = 'Second translation';
+        service.rootNodes.set([prev, curr]);
+
+        service.mergeWithPreviousSibling(curr.id);
+
+        expect(service.rootNodes()[0].translation).toBe('First translation\nSecond translation');
+      });
+
+      it('should leave previous sibling translation undefined when neither has one', () => {
+        const prev = service.createNode('First');
+        const curr = service.createNode('Second');
+        service.rootNodes.set([prev, curr]);
+
+        service.mergeWithPreviousSibling(curr.id);
+
+        expect(service.rootNodes()[0].translation).toBeUndefined();
+      });
+    });
+  });
+
   describe('clearAll', () => {
     it('should reset to single empty root node', () => {
       const root1 = service.createNode('First');
