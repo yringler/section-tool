@@ -79,6 +79,10 @@
   min-width: 0;
 }
 
+.children-container {
+  width: 100%;
+}
+
 wa-textarea.translation-area {
   width: 100%;
   display: block;

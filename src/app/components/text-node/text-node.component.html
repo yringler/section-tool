@@ -27,17 +27,6 @@
             #waTextarea
             placeholder="Enter text here..."
           ></wa-textarea>
-        } @else {
-          <app-text-node
-            [node]="item"
-            [level]="level() + 1"
-            [showTranslation]="showTranslation()"
-            (nodeKeydown)="onChildKeydown($event)"
-            (textChange)="onChildTextChange($event)"
-            (labelChange)="onChildLabelChange($event)"
-            (deleteNode)="onChildDelete($event)"
-            (translationChange)="onChildTranslationChange($event)"
-          />
         }
       }
     </div>
@@ -55,6 +44,23 @@
           placeholder="Translation..."
         ></wa-textarea>
       </div>
+    }
+  </div>
+
+  <div class="children-container">
+    @for (item of node().children; track $index) {
+      @if (!isString(item)) {
+        <app-text-node
+          [node]="item"
+          [level]="level() + 1"
+          [showTranslation]="showTranslation()"
+          (nodeKeydown)="onChildKeydown($event)"
+          (textChange)="onChildTextChange($event)"
+          (labelChange)="onChildLabelChange($event)"
+          (deleteNode)="onChildDelete($event)"
+          (translationChange)="onChildTranslationChange($event)"
+        />
+      }
     }
   </div>
 </div>
