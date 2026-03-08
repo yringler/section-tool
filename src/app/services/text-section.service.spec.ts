@@ -519,6 +519,83 @@ describe('TextSectionService', () => {
   });
 
   describe('translation behavior during section operations', () => {
+    describe('splitToChild', () => {
+      it('should keep translation on original node after split', () => {
+        const nodeId = service.rootNodes()[0].id;
+        service.updateNodeText(nodeId, 0, 'Hello World');
+        service.updateNodeTranslation(nodeId, 'My translation');
+
+        service.splitToChild(nodeId, 0, 5);
+
+        expect(service.rootNodes()[0].translation).toBe('My translation');
+      });
+
+      it('should not give translation to the new child node', () => {
+        const nodeId = service.rootNodes()[0].id;
+        service.updateNodeText(nodeId, 0, 'Hello World');
+        service.updateNodeTranslation(nodeId, 'My translation');
+
+        const newId = service.splitToChild(nodeId, 0, 5);
+
+        const newChild = service.rootNodes()[0].children[1] as TextNode;
+        expect(newChild.id).toBe(newId);
+        expect(newChild.translation).toBeUndefined();
+      });
+    });
+
+    describe('splitToSibling', () => {
+      it('should keep translation on original node after split', () => {
+        const nodeId = service.rootNodes()[0].id;
+        service.updateNodeText(nodeId, 0, 'Hello World');
+        service.updateNodeTranslation(nodeId, 'My translation');
+
+        service.splitToSibling(nodeId, 0, 5);
+
+        expect(service.rootNodes()[0].translation).toBe('My translation');
+      });
+
+      it('should not give translation to the new sibling node', () => {
+        const nodeId = service.rootNodes()[0].id;
+        service.updateNodeText(nodeId, 0, 'Hello World');
+        service.updateNodeTranslation(nodeId, 'My translation');
+
+        const newId = service.splitToSibling(nodeId, 0, 5);
+
+        const newSibling = service.rootNodes()[1];
+        expect(newSibling.id).toBe(newId);
+        expect(newSibling.translation).toBeUndefined();
+      });
+    });
+
+    describe('splitToParentSibling', () => {
+      it('should keep translation on original node after split', () => {
+        const root = service.rootNodes()[0];
+        const child = service.createNode('Hello World');
+        child.translation = 'My translation';
+        root.children = ['', child];
+        service.rootNodes.set([root]);
+
+        service.splitToParentSibling(child.id, 0, 5);
+
+        const updatedChild = service.rootNodes()[0].children[1] as TextNode;
+        expect(updatedChild.translation).toBe('My translation');
+      });
+
+      it('should not give translation to the promoted new node', () => {
+        const root = service.rootNodes()[0];
+        const child = service.createNode('Hello World');
+        child.translation = 'My translation';
+        root.children = ['', child];
+        service.rootNodes.set([root]);
+
+        const newId = service.splitToParentSibling(child.id, 0, 5);
+
+        const promoted = service.rootNodes()[1];
+        expect(promoted.id).toBe(newId);
+        expect(promoted.translation).toBeUndefined();
+      });
+    });
+
     describe('mergeWithParent', () => {
       it('should keep child translation on parent when parent has none', () => {
         const root = service.rootNodes()[0];
