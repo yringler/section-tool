@@ -836,6 +836,36 @@ describe('TextSectionService', () => {
       expect(xml).toContain('<translation><![CDATA[Text with <i>italic</i> & "quotes"]]></translation>');
     });
 
+    it('should wrap translation paragraphs in p tags when translation has newlines', () => {
+      service.clearAll();
+      const root = service.createNode('Hebrew text');
+      root.translation = 'First paragraph\nSecond paragraph';
+      service.rootNodes.set([root]);
+
+      const xml = service.xmlOutput();
+      expect(xml).toContain('<translation><![CDATA[<p>First paragraph</p><p>Second paragraph</p>]]></translation>');
+    });
+
+    it('should not wrap in p tags when translation has no newlines', () => {
+      service.clearAll();
+      const root = service.createNode('Hebrew text');
+      root.translation = 'Single paragraph';
+      service.rootNodes.set([root]);
+
+      const xml = service.xmlOutput();
+      expect(xml).toContain('<translation><![CDATA[Single paragraph]]></translation>');
+    });
+
+    it('should filter empty lines when translation has multiple newlines', () => {
+      service.clearAll();
+      const root = service.createNode('Hebrew text');
+      root.translation = 'First\n\nThird';
+      service.rootNodes.set([root]);
+
+      const xml = service.xmlOutput();
+      expect(xml).toContain('<translation><![CDATA[<p>First</p><p>Third</p>]]></translation>');
+    });
+
     it('should handle complex nested structure', () => {
       service.clearAll();
       const root = service.createNode('Root text', 'Root');
