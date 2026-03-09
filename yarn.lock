@@ -4249,6 +4249,9 @@ __metadata:
     typescript: "npm:~5.9.0"
     vitest: "npm:^4.0.18"
     wrangler: "npm:^3.0.0"
+  dependenciesMeta:
+    wrangler:
+      optional: true
   languageName: unknown
   linkType: soft
 

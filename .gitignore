@@ -20,6 +20,10 @@ npm-debug.log
 !.yarn/versions
 .pnp.*
 
+# Exclude large optional dependency caches (wrangler/workerd >50MB)
+.yarn/cache/*wrangler*
+.yarn/cache/*workerd*
+
 # IDEs and editors
 .idea/
 .project
