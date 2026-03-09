@@ -9,7 +9,20 @@
 # Node
 /node_modules
 npm-debug.log
-yarn-error.log
+
+# Yarn Berry (offline cache / near-zero-installs)
+.yarn/*
+!.yarn/cache
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+.pnp.*
+
+# Exclude large optional dependency caches (wrangler/workerd >50MB)
+.yarn/cache/*wrangler*
+.yarn/cache/*workerd*
 
 # IDEs and editors
 .idea/
