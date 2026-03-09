@@ -1,8 +1,5 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "hebrew-section-tool",
-  "pages": {
-    "build_command": "sh pages-build.sh",
-    "build_output_dir": "dist/hebrew-section-tool/browser"
-  }
+  "pages_build_output_dir": "dist/hebrew-section-tool/browser"
 }
