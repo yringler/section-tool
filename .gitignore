@@ -23,6 +23,9 @@ npm-debug.log
 # Exclude large optional dependency caches (wrangler/workerd >50MB)
 .yarn/cache/*wrangler*
 .yarn/cache/*workerd*
+# Exclude from git things which are local
+.yarn/cache/*-win32-*
+.yarn/cache/*-linux-*
 
 # IDEs and editors
 .idea/
