@@ -346,8 +346,12 @@ export class TextSectionService {
         // Check if this node has only text (no child nodes)
         const hasChildNodes = node.children.some(c => this.isTextNode(c));
         const allText = node.children.filter(c => typeof c === 'string').map(s => s.trim()).join('');
-        const translationAttr = node.translation?.trim()
-          ? `\n${pad}  <translation><![CDATA[${node.translation.trim()}]]></translation>`
+        const rawTranslation = node.translation?.trim() ?? '';
+        const translationContent = rawTranslation.includes('\n')
+          ? rawTranslation.split('\n').filter(line => line.trim()).map(line => `<p>${line.trim()}</p>`).join('')
+          : rawTranslation;
+        const translationAttr = translationContent
+          ? `\n${pad}  <translation><![CDATA[${translationContent}]]></translation>`
           : '';
 
         if (!hasChildNodes && allText) {

@@ -133,6 +133,20 @@ describe('XmlParserService', () => {
       expect(nodes[0].translation).toBeUndefined();
     });
 
+    it('should convert p tags in translation back to newlines', () => {
+      const xml = '<section>Hebrew text<translation><![CDATA[<p>First paragraph</p><p>Second paragraph</p>]]></translation></section>';
+      const nodes = service.parseXml(xml);
+
+      expect(nodes[0].translation).toBe('First paragraph\nSecond paragraph');
+    });
+
+    it('should leave translation without p tags unchanged', () => {
+      const xml = '<section>Hebrew text<translation><![CDATA[Single paragraph]]></translation></section>';
+      const nodes = service.parseXml(xml);
+
+      expect(nodes[0].translation).toBe('Single paragraph');
+    });
+
     it('should ensure at least one child in empty sections', () => {
       const xml = '<section label="Empty"></section>';
       const nodes = service.parseXml(xml);

@@ -84,7 +84,10 @@ export class XmlParserService {
           // Recursively parse child section
           node.children.push(this.parseSection(childElement));
         } else if (childElement.tagName.toLowerCase() === 'translation') {
-          node.translation = this.unescapeXml(childElement.textContent || '').trim();
+          const raw = this.unescapeXml(childElement.textContent || '').trim();
+          node.translation = raw.includes('<p>')
+            ? raw.replace(/<p>/g, '').replace(/<\/p>/g, '\n').replace(/\n+$/, '').trim()
+            : raw;
         }
       }
     }
